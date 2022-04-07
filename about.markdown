@@ -8,4 +8,4 @@ to keep documentation of various aspects of software development that I have bee
 learning.
 
 I have been blogging with Wordpress also: 
-[ behainguyen.wordpress.com ](https://behainguyen.wordpress.com).
+[ behainguyen.wordpress.com ](https://behainguyen.wordpress.com){:target="_blank"}.
