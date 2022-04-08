@@ -23,8 +23,8 @@ email: behai_nguyen@hotmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Documentation of various aspects of software development that 
   I have been learning.
-baseurl: "/behai" # the subpath of your site, e.g. /blog
-url: "http://localhost" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: nguyen_behai
 github_username:  behai-nguyen
 
