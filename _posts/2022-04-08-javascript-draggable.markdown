@@ -18,7 +18,7 @@ several sites whom have done this already. The one I like best is
 It is a general purpose code, which can be used with Bootstrap 5.0 dialogs.
 I re-list this code below as it is, with my own comments:
 
-{% highlight ruby %}
+{% highlight javascript %}
 
 //
 // Description:
@@ -105,7 +105,7 @@ Bootstrap 5.0 modal events, please take a look at
 [ https://getbootstrap.com/docs/5.0/components/modal/#events ](https://getbootstrap.com/docs/5.0/components/modal/#events){:target="_blank"} --
 which explains events in detail.
 
-{% highlight ruby %}
+{% highlight javascript %}
 
 <!doctype html>
 <html lang="en">
@@ -166,7 +166,7 @@ which explains events in detail.
 We're interested in the following lines: on the modal open event, we give it 
 the draggable capability:
 
-{% highlight ruby %}
+{% highlight javascript %}
 $( '#exampleModal' ).on('shown.bs.modal', function () {
 	$(this).find('.modal-dialog').drags();
 });

@@ -1,0 +1,75 @@
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {%- seo -%}
+  <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
+  {%- feed_meta -%}
+  {%- if jekyll.environment == 'production' and site.google_analytics -%}
+    {%- include google-analytics.html -%}
+  {%- endif -%}
+
+{% comment %}
+    https://dmitryrogozhny.com/blog/how-to-add-custom-script-to-single-post-in-jekyll
+    https://github.com/dmitryrogozhny/dmitryrogozhny.github.io/blob/master/_includes/custom-scripts.html
+{% endcomment %}
+
+{% comment %}
+    Adds references to JavaScript and CSS files to a page.
+
+    Takes page.custom-javascript-list varialbe and renders script tag for each item in it.
+    Takes page.custom-css-list varialbe and renders link tag for each item in it.
+{% endcomment %}
+
+{% for css in page.custom-css-list %}
+    <link href="{{ css }}" rel="stylesheet">
+{% endfor %}
+
+{% for javascript in page.custom-javascript-list %}
+    <script src="{{ javascript }}"></script>
+{% endfor %}
+
+    <style>
+		body {
+		  min-height: 100vh;
+		  min-height: -webkit-fill-available;
+		}
+
+		html {
+		  height: -webkit-fill-available;
+		}
+
+		main {
+		  display: flex;
+		  flex-wrap: nowrap;
+		  height: 100vh;
+		  height: -webkit-fill-available;
+		  max-height: 100vh;
+		  overflow-x: auto;
+		  overflow-y: hidden;
+		}
+
+        header { min-height: 60px; }
+
+        footer { min-height: 80px; }
+
+        main div.container {
+		    margin-right: 0;
+			margin-left: 0;
+			max-width: 100%;
+            overflow-y: auto;
+        }
+
+        main div.container div.demo-container {
+		    margin: 0 15% 0 15%;
+			padding: 0 1% 0 1%;
+        }
+		
+		ul.social-media-list { padding-left: 0; }
+		
+		li a svg.svg-icon {
+		    width: 21px;
+			vertical-align: middle;
+		}
+    </style>
+</head>
