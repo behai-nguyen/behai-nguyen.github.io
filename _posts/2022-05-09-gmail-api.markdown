@@ -1,0 +1,17 @@
+---
+layout: post
+title: "GMail API: quick start with Python and NodeJs."
+
+---
+
+I've carried out Google's instructions to set up a Google Cloud Platform 
+project which enables GMail API; and I'm able to send out emails using the 
+generated credentials file provided by the Google Cloud Platform. The 
+credentials file is used for both Python and NodeJs.
+
+| ![017-feature.png](https://behainguyen.files.wordpress.com/2022/05/017-feature.png) | 
+|:--:| 
+| *GMail API: quick start with Python and NodeJs.* |
+
+
+Please see my Wordpress link [GMail API: quick start with Python and NodeJs.](https://behainguyen.wordpress.com/2022/05/09/gmail-api-quick-start-with-python-and-nodejs/){:target="_blank"}.
