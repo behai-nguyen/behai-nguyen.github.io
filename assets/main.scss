@@ -6,3 +6,16 @@
 .medium-font-size {
     font-size: 1.5em;
   }
+  
+.keyword {
+    font-family:Monaco,Consolas,Menlo,Courier,monospace;
+	background-color: #e9edf2;
+	padding-left: 0.25em;
+	padding-right: 0.25em;
+}
+
+.danger-text {
+    color: red;
+	font-weight: bold;
+}
+  
