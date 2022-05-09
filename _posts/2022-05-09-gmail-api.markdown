@@ -2,16 +2,360 @@
 layout: post
 title: "GMail API: quick start with Python and NodeJs."
 
+custom-css-list:
+    - "/assets/lightbox.css"
+
+custom-javascript-list:
+    - "/assets/lightbox.js"
+
+gallery-image-list:
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-01.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-02.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-03.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-04.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-05.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-06.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-07.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-08.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-09.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-10.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-11.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-12.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-13.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-14.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-15.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-16.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-17.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-18.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-19.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-20.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-21.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-22.png"
 ---
 
-I've carried out Google's instructions to set up a Google Cloud Platform 
-project which enables GMail API; and I'm able to send out emails using the 
-generated credentials file provided by the Google Cloud Platform. The 
+I've carried out Google's instructions to set up a Google Cloud Platform
+project which enables GMail API; and I'm able to send out emails using the
+generated credentials file provided by the Google Cloud Platform. The
 credentials file is used for both Python and NodeJs.
 
-| ![017-feature.png](https://behainguyen.files.wordpress.com/2022/05/017-feature.png) | 
-|:--:| 
+| ![017-feature.png](https://behainguyen.files.wordpress.com/2022/05/017-feature.png) |
+|:--:|
 | *GMail API: quick start with Python and NodeJs.* |
 
-
+{% comment %}
 Please see my Wordpress link [GMail API: quick start with Python and NodeJs.](https://behainguyen.wordpress.com/2022/05/09/gmail-api-quick-start-with-python-and-nodejs/){:target="_blank"}.
+{% endcomment %}
+
+Sending emails via
+<span class="keyword">GMail</span>
+from applications with just a
+<span class="keyword">GMail</span>
+email and a password
+will not be supported after May, 30th 2022; see
+[Less secure app access: https://myaccount.google.com/lesssecureapps](https://myaccount.google.com/lesssecureapps){:target="_blank"};
+and this will not work with accounts that have “2-Step Verification” enabled.
+<span class="keyword">GMail API</span> 
+should be used to send emails. And I have been able to do it 
+successfully. This post is a documentation of what I have done.
+
+For this post, I'm running test codes in a 
+<span class="keyword">Python virtualenv</span>;
+please see 
+[https://behainguyen.wordpress.com/2022/02/15/python-virtual-environment-virtualenv-for-multiple-python-versions/](https://behainguyen.wordpress.com/2022/02/15/python-virtual-environment-virtualenv-for-multiple-python-versions/){:target="_blank"};
+for how to set up a 
+<span class="keyword">Python virtualenv</span>.
+
+### 1. Configure a Google Cloud Platform project
+
+Google's API 
+[Python Quickstart: https://developers.google.com/gmail/api/quickstart/python](https://developers.google.com/gmail/api/quickstart/python){:target="_blank"} 
+provides enough information on how to set up a
+<span class="keyword">Google Cloud Platform project</span>
+with <span class="keyword">GMail API</span>
+enabled. I have done a similar configuration for
+<span class="keyword">YouTube Data API</span>
+before, but still it took me two attempts to get this
+<span class="keyword">GMail API</span>
+configuration right.
+
+Basically, these are the steps we have to do:
+
+* Create a <span class="keyword">Google Cloud Platform project</span>.
+
+* “Enabled APIs & services”; i.e. <span class="keyword">GMail API</span>.
+
+* Configure “OAuth Consent Screen”. Note that, on screen, 
+the sidebar on the left has 
+<span class="keyword">“Credentials”</span>
+before 
+<span class="keyword">“OAuth consent screen”</span>:
+if we run <span class="keyword">“Credentials”</span> 
+first, it will take us back to 
+<span class="keyword">“OAuth consent screen”</span>,
+I did this in my second attempt. Not a major problem, just a few more clicks.
+
+* Create
+<span class="keyword">“OAuth client ID”</span>
+credentials. This was where I got it wrong the first time: I selected 
+<span class="keyword">“Service account” instead</span>.
+
+* Download credentials file as 
+<span class="keyword">JSON</span>. 
+This is the secret credentials file that
+applications need to use. I downloaded the generated credentials file as 
+<span class="keyword">client_secret_oauth_gmail.json</span>.
+
+The images below are step by step of the process above:
+	
+{% include image-gallery.html %}
+
+### 2. Testing Python codes
+
+#### 2.a. Google sample code
+
+As per Google's API 
+[Python Quickstart: https://developers.google.com/gmail/api/quickstart/python](https://developers.google.com/gmail/api/quickstart/python){:target="_blank"} 
+I'm using <span class="keyword">Python 3.10.1</span>, 
+so that should be okay; and we need to install 
+<span class="keyword">Google client libraries</span>:
+
+```
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+```
+
+The <span class="keyword">Python</span> codes from the aforementioned Google link:
+
+```
+File: quickstart.py
+```
+
+{% highlight python %}
+from __future__ import print_function
+
+import os.path
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+# If modifying these scopes, delete the file token.json.
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+def main():
+    """Shows basic usage of the Gmail API.
+    Lists the user's Gmail labels.
+    """
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'client_secret_oauth_gmail.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    try:
+        # Call the Gmail API
+        service = build('gmail', 'v1', credentials=creds)
+        results = service.users().labels().list(userId='me').execute()
+        labels = results.get('labels', [])
+
+        if not labels:
+            print('No labels found.')
+            return
+        print('Labels:')
+        for label in labels:
+            print(label['name'])
+
+    except HttpError as error:
+        # TODO(developer) - Handle errors from gmail API.
+        print(f'An error occurred: {error}')
+
+
+if __name__ == '__main__':
+    main()
+{% endhighlight %}
+
+My command to run it:
+
+```
+(venv310) F:\Codes\Python\virtual>.\venv310\Scripts\python.exe quickstart.py
+```
+
+If everything has gone okay, the default browser will display 
+<span class="keyword">GMail</span>
+account selection, just accept and continue: ignore warnings as we're testing 
+our own stuff. Finally, the last screen appears with the following message:
+
+```
+The authentication flow has completed. You may close this window.
+```
+
+The output looks like the following screen:
+
+| ![017-gmail-api-23.png](https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-23.png) |
+|:--:|
+| *quickstart.py's output.* |
+
+#### 2.b. Sending emails code
+
+Using the above aforementioned Google link, together with the following
+Stackoverflow posts, I managed to put together a workable quick and dirty 
+test code <span class="keyword">email-03.py</span>.
+
+* [Stackoverflow: Sending email via Gmail & Python](https://stackoverflow.com/questions/37201250/sending-email-via-gmail-python){:target="_blank"} 
+
+* [Stackoverflow: gmail python api with python 3 messages().send() gets json serialization error](https://stackoverflow.com/questions/59887052/gmail-python-api-with-python-3-messages-send-gets-json-serialization-error){:target="_blank"} 
+
+* [Stackoverflow: Python Email, [Errno 10061] No connection could be made because the target machine actively refused it](https://stackoverflow.com/questions/37960035/python-email-errno-10061-no-connection-could-be-made-because-the-target-machi){:target="_blank"} 
+
+```
+File: email-03.py
+```
+
+<p class="danger-text">
+    Before running, please delete <span class="keyword">token.json</span>;
+	which was written out during previous runs.
+</p>
+
+{% highlight python %}
+from __future__ import print_function
+
+import os.path
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+import base64
+
+# If modifying these scopes, delete the file token.json.
+# SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+
+def CreateMessageHtml(sender, to, subject, msgHtml, msgPlain):
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = to
+    msg.attach(MIMEText(msgPlain, 'plain'))
+    msg.attach(MIMEText(msgHtml, 'html'))
+    message = { 'raw' : base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8") }
+    return message
+
+def SendMessageInternal(service, user_id, message):
+    try:
+        message = (service.users().messages().send(userId=user_id, body=message).execute())
+        print('Message Id: %s' % message['id'])
+        return message
+    except HttpError as error:
+        print('An error occurred: %s' % error)
+        return "Error"
+    return "OK"
+
+def main():
+    """Shows basic usage of the Gmail API.
+    Lists the user's Gmail labels.
+    """
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'client_secret_oauth_gmail.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    try:
+        # Call the Gmail API
+        service = build('gmail', 'v1', credentials=creds)
+		
+        to = "behai_nguyen@hotmail.com"
+        sender = "Email_Used_In_Google_Cloud_Platform_Project@gmail.com"
+        subject = "Message via GMail API"
+        msgHtml = "<h1>Hello, this email is send from GMail using GMail API OAuth.</h1>"
+        msgPlain = "Hello, this email is send from GMail using GMail API OAuth."
+		
+        message1 = CreateMessageHtml(sender, to, subject, msgHtml, msgPlain)
+        result = SendMessageInternal(service, "me", message1)		
+		
+        print( result )
+
+    except HttpError as error:
+        # TODO(developer) - Handle errors from gmail API.
+        print(f'An error occurred: {error}')
+
+
+if __name__ == '__main__':
+    main()
+{% endhighlight %}
+
+The sent email as seen in my Hotmail account:
+
+| ![017-gmail-api-24.png](https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-24.png) |
+|:--:|
+| *The sent email in destination mailbox.* |
+
+### 3. Testing NodeJs code
+
+Please note, I'm using <span class="keyword">NodeJs v10.15.3</span>.
+
+This Google's API <a href="https://developers.google.com/gmail/api/quickstart/nodejs" title="Node.js quickstart" target="_blank">Node.js quickstart: https://developers.google.com/gmail/api/quickstart/nodejs</a>
+is <span class="keyword">NodeJs</span> equivalent
+of the <span class="keyword">Python</span>'s one,
+also using the same generated credentials 
+<span class="keyword">JSON</span> file.
+
+I just followed the instructions, installing required package. Save the code as 
+<span class="keyword">quickstart.js</span>, and run it with the command:
+
+```
+   "C:\Program Files\nodejs\node.exe" quickstart.js
+```
+
+There are two additional steps involved. At the command prompt, it writes out 	
+a link, and we have to copy this link, and paste into the browser in which
+the account used for the <span class="keyword">Google Cloud Platform project</span> 
+is signed in, it then redirects to a link similar to the below:
+
+```
+http://localhost/?code=4/0AX4XfWgY5FRSgl4Gm0ogQLu0MzSFV4vc2sy6S3Omu6llMNrtxiNjk4RkxdAXtemH8nXvWQ&scope=https://www.googleapis.com/auth/gmail.readonly
+```
+
+We need to copy out the value of the
+<span class="keyword">code</span> query param and give it to the command prompt's awaiting prompt.
+The output is similar to <span class="keyword">the Python</span>'s equivalent:
+
+| ![017-gmail-api-nodejs-25.png](https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-nodejs-25.png) |
+|:--:|
+| *quickstart.js' output.* |
+
+
+I've not worked on <span class="keyword">NodeJs</span> 
+sending email codes yet... I'll get to it later on. 
+Thank you for visiting and I do hope you find this useful.
