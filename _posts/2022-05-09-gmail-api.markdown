@@ -30,7 +30,7 @@ gallery-image-list:
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-19.png"
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-20.png"
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-21.png"
-    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-22.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-22-1.png"
 ---
 
 I've carried out Google's instructions to set up a Google Cloud Platform
