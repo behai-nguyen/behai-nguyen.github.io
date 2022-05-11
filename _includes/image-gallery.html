@@ -1,20 +1,13 @@
 {% comment %}
-    https://jekyllcodex.org/without-plugin/image-gallery/
+    Original idea is from https://jekyllcodex.org/without-plugin/image-gallery/
 {% endcomment %}
 
-<style>
-  .image-gallery {overflow: auto; margin-left: -1%!important;}
-  .image-gallery li, .image-gallery a {float: left; display: block; margin: 0 0 1% 1%; xwidth: 19%; text-align: center; text-decoration: none!important;}
-  .image-gallery a span {display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; padding: 3px 0;}
-  .image-gallery a img {width: 100%; display: block;}
-</style>
-
-<ul class="image-gallery">
-
-{% for image in page.gallery-image-list %}
-    <li><a href="{{ image }}" title="image">
-		<img src="//images.weserv.nl/?url={{ image }}&w=100&h=100&output=jpg&q=50&t=square" alt="" />
-    </a></li>	  
+<div class="uk-child-width-1-5@m" uk-grid uk-lightbox="animation: fade">
+{% for image in include.list %}
+    <div>
+        <a class="uk-inline" href="{{ image }}" data-caption="">
+            <img src="{{ image }}" alt="">
+        </a>
+	</div>
 {% endfor %}
-
-</ul>
+</div>
