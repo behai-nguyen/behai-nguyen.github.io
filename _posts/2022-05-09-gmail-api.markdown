@@ -3,10 +3,11 @@ layout: post
 title: "GMail API: quick start with Python and NodeJs."
 
 custom-css-list:
-    - "/assets/lightbox.css"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
 
 custom-javascript-list:
-    - "/assets/lightbox.js"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
 
 gallery-image-list:
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-01.png"
@@ -30,7 +31,11 @@ gallery-image-list:
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-19.png"
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-20.png"
     - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-21.png"
-    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-22-1.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-22-1.png"	
+gallery-image-list-1:
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-23.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-gmail-api-24.png"
+    - "https://behainguyen.files.wordpress.com/2022/05/017-feature.png"	
 ---
 
 I've carried out Google's instructions to set up a Google Cloud Platform
@@ -54,21 +59,21 @@ email and a password
 will not be supported after May, 30th 2022; see
 [Less secure app access: https://myaccount.google.com/lesssecureapps](https://myaccount.google.com/lesssecureapps){:target="_blank"};
 and this will not work with accounts that have “2-Step Verification” enabled.
-<span class="keyword">GMail API</span> 
-should be used to send emails. And I have been able to do it 
+<span class="keyword">GMail API</span>
+should be used to send emails. And I have been able to do it
 successfully. This post is a documentation of what I have done.
 
-For this post, I'm running test codes in a 
+For this post, I'm running test codes in a
 <span class="keyword">Python virtualenv</span>;
-please see 
+please see
 [https://behainguyen.wordpress.com/2022/02/15/python-virtual-environment-virtualenv-for-multiple-python-versions/](https://behainguyen.wordpress.com/2022/02/15/python-virtual-environment-virtualenv-for-multiple-python-versions/){:target="_blank"};
-for how to set up a 
+for how to set up a
 <span class="keyword">Python virtualenv</span>.
 
 ### 1. Configure a Google Cloud Platform project
 
-Google's API 
-[Python Quickstart: https://developers.google.com/gmail/api/quickstart/python](https://developers.google.com/gmail/api/quickstart/python){:target="_blank"} 
+Google's API
+[Python Quickstart: https://developers.google.com/gmail/api/quickstart/python](https://developers.google.com/gmail/api/quickstart/python){:target="_blank"}
 provides enough information on how to set up a
 <span class="keyword">Google Cloud Platform project</span>
 with <span class="keyword">GMail API</span>
@@ -84,39 +89,39 @@ Basically, these are the steps we have to do:
 
 * “Enabled APIs & services”; i.e. <span class="keyword">GMail API</span>.
 
-* Configure “OAuth Consent Screen”. Note that, on screen, 
-the sidebar on the left has 
+* Configure “OAuth Consent Screen”. Note that, on screen,
+the sidebar on the left has
 <span class="keyword">“Credentials”</span>
-before 
+before
 <span class="keyword">“OAuth consent screen”</span>:
-if we run <span class="keyword">“Credentials”</span> 
-first, it will take us back to 
+if we run <span class="keyword">“Credentials”</span>
+first, it will take us back to
 <span class="keyword">“OAuth consent screen”</span>,
 I did this in my second attempt. Not a major problem, just a few more clicks.
 
 * Create
 <span class="keyword">“OAuth client ID”</span>
-credentials. This was where I got it wrong the first time: I selected 
+credentials. This was where I got it wrong the first time: I selected
 <span class="keyword">“Service account” instead</span>.
 
-* Download credentials file as 
-<span class="keyword">JSON</span>. 
+* Download credentials file as
+<span class="keyword">JSON</span>.
 This is the secret credentials file that
-applications need to use. I downloaded the generated credentials file as 
+applications need to use. I downloaded the generated credentials file as
 <span class="keyword">client_secret_oauth_gmail.json</span>.
 
 The images below are step by step of the process above:
-	
-{% include image-gallery.html %}
+
+{% include image-gallery.html list=page.gallery-image-list %}
 
 ### 2. Testing Python codes
 
 #### 2.a. Google sample code
 
-As per Google's API 
-[Python Quickstart: https://developers.google.com/gmail/api/quickstart/python](https://developers.google.com/gmail/api/quickstart/python){:target="_blank"} 
-I'm using <span class="keyword">Python 3.10.1</span>, 
-so that should be okay; and we need to install 
+As per Google's API
+[Python Quickstart: https://developers.google.com/gmail/api/quickstart/python](https://developers.google.com/gmail/api/quickstart/python){:target="_blank"}
+I'm using <span class="keyword">Python 3.10.1</span>,
+so that should be okay; and we need to install
 <span class="keyword">Google client libraries</span>:
 
 ```
@@ -193,9 +198,9 @@ My command to run it:
 (venv310) F:\Codes\Python\virtual>.\venv310\Scripts\python.exe quickstart.py
 ```
 
-If everything has gone okay, the default browser will display 
+If everything has gone okay, the default browser will display
 <span class="keyword">GMail</span>
-account selection, just accept and continue: ignore warnings as we're testing 
+account selection, just accept and continue: ignore warnings as we're testing
 our own stuff. Finally, the last screen appears with the following message:
 
 ```
@@ -211,14 +216,14 @@ The output looks like the following screen:
 #### 2.b. Sending emails code
 
 Using the above aforementioned Google link, together with the following
-Stackoverflow posts, I managed to put together a workable quick and dirty 
+Stackoverflow posts, I managed to put together a workable quick and dirty
 test code <span class="keyword">email-03.py</span>.
 
-* [Stackoverflow: Sending email via Gmail & Python](https://stackoverflow.com/questions/37201250/sending-email-via-gmail-python){:target="_blank"} 
+* [Stackoverflow: Sending email via Gmail & Python](https://stackoverflow.com/questions/37201250/sending-email-via-gmail-python){:target="_blank"}
 
-* [Stackoverflow: gmail python api with python 3 messages().send() gets json serialization error](https://stackoverflow.com/questions/59887052/gmail-python-api-with-python-3-messages-send-gets-json-serialization-error){:target="_blank"} 
+* [Stackoverflow: gmail python api with python 3 messages().send() gets json serialization error](https://stackoverflow.com/questions/59887052/gmail-python-api-with-python-3-messages-send-gets-json-serialization-error){:target="_blank"}
 
-* [Stackoverflow: Python Email, [Errno 10061] No connection could be made because the target machine actively refused it](https://stackoverflow.com/questions/37960035/python-email-errno-10061-no-connection-could-be-made-because-the-target-machi){:target="_blank"} 
+* [Stackoverflow: Python Email, [Errno 10061] No connection could be made because the target machine actively refused it](https://stackoverflow.com/questions/37960035/python-email-errno-10061-no-connection-could-be-made-because-the-target-machi){:target="_blank"}
 
 ```
 File: email-03.py
@@ -294,16 +299,16 @@ def main():
     try:
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
-		
+
         to = "behai_nguyen@hotmail.com"
         sender = "Email_Used_In_Google_Cloud_Platform_Project@gmail.com"
         subject = "Message via GMail API"
         msgHtml = "<h1>Hello, this email is send from GMail using GMail API OAuth.</h1>"
         msgPlain = "Hello, this email is send from GMail using GMail API OAuth."
-		
+
         message1 = CreateMessageHtml(sender, to, subject, msgHtml, msgPlain)
-        result = SendMessageInternal(service, "me", message1)		
-		
+        result = SendMessageInternal(service, "me", message1)
+
         print( result )
 
     except HttpError as error:
@@ -328,19 +333,19 @@ Please note, I'm using <span class="keyword">NodeJs v10.15.3</span>.
 This Google's API <a href="https://developers.google.com/gmail/api/quickstart/nodejs" title="Node.js quickstart" target="_blank">Node.js quickstart: https://developers.google.com/gmail/api/quickstart/nodejs</a>
 is <span class="keyword">NodeJs</span> equivalent
 of the <span class="keyword">Python</span>'s one,
-also using the same generated credentials 
+also using the same generated credentials
 <span class="keyword">JSON</span> file.
 
-I just followed the instructions, installing required package. Save the code as 
+I just followed the instructions, installing required package. Save the code as
 <span class="keyword">quickstart.js</span>, and run it with the command:
 
 ```
    "C:\Program Files\nodejs\node.exe" quickstart.js
 ```
 
-There are two additional steps involved. At the command prompt, it writes out 	
+There are two additional steps involved. At the command prompt, it writes out
 a link, and we have to copy this link, and paste into the browser in which
-the account used for the <span class="keyword">Google Cloud Platform project</span> 
+the account used for the <span class="keyword">Google Cloud Platform project</span>
 is signed in, it then redirects to a link similar to the below:
 
 ```
@@ -356,6 +361,6 @@ The output is similar to <span class="keyword">the Python</span>'s equivalent:
 | *quickstart.js' output.* |
 
 
-I've not worked on <span class="keyword">NodeJs</span> 
-sending email codes yet... I'll get to it later on. 
+I've not worked on <span class="keyword">NodeJs</span>
+sending email codes yet... I'll get to it later on.
 Thank you for visiting and I do hope you find this useful.
