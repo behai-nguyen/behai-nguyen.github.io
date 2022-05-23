@@ -294,9 +294,6 @@ def data_to_flowables( flowables, cols_width, table_style ):
     data = prepare_data()
 
     for itm in data:
-        master_data = [ ['Dept. Number', 'Dept. Name', '3', '4', '5', '6' ] ]
-        master_data.append( [ itm['dept_no'], itm['dept_name'], '3', '4', '5', '6' ] )
-
         master_para = Paragraph( '''Dept. Number <font color=blue>{}</font>,
             Dept. Name <font color=blue>{}</font>'''.format(itm['dept_no'], itm['dept_name']) )
 
