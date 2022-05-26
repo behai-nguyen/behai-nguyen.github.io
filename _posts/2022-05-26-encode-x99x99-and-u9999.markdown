@@ -1,0 +1,252 @@
+---
+layout: post
+title: "Python: UTF-8 Encoding \\x99\\x99 and \\u9999...?"
+
+---
+
+What are differences between UTF-8 encoding \x99\x99 and \u9999? 
+And how do we encode UTF-8 strings to the latter format, e.g. 
+\u0420\u043e\u0441\u0441\u0438\u044f?
+
+| ![021-feature-image.png](https://behainguyen.files.wordpress.com/2022/05/021-feature-image.png) |
+|:--:|
+| *Python: UTF-8 Encoding \x99\x99\ and \u9999...?* |
+
+<span class="keyword">
+Python</span> fully supports
+<span class="keyword">
+Unicode</span> strings -- see
+<a href="https://docs.python.org/3/howto/unicode.html"
+title="Unicode HOWTO" target="_blank">https://docs.python.org/3/howto/unicode.html</a>.
+We can see this by printing out
+<span class="keyword">
+Australia</span> in different languages:
+
+{% highlight python %}
+# Chinese ( Simplified ).
+print( '澳大利亚' )
+# Chinese ( Traditional ).
+print( '澳大利亞' )
+# Japanese.
+print( 'オーストラリア' )
+# Khmer.
+print( 'អូស្ត្រាលី' )
+# Korean: -- I think this is Australia continent.
+print( '호주' ) 
+# Russian.
+print( 'Австралия' )
+# Vietnamese -- Australia continent
+print( 'Úc Châu' )
+# Vietnamese -- Long form of Australia country.
+print( 'Úc Đại Lợi' )
+{% endhighlight %}
+
+Method
+<span class="keyword">
+string.encode( 'utf-8' )</span> (
+<a href="https://docs.python.org/3/library/stdtypes.html#str.encode"
+title="str.encode(encoding='utf-8', errors='strict')"
+target="_blank">https://docs.python.org/3/library/stdtypes.html#str.encode</a> )
+can be seen frenquently in forums and posts. Let's try it:
+
+{% highlight python %}
+australia_in_russian = 'Австралия'
+
+encoded_bytes = australia_in_russian.encode( 'utf-8' )
+
+print( '1. ', encoded_bytes )
+
+print( '2. ', b'\xd0\x90\xd0\xb2\xd1\x81\xd1\x82\xd1\x80\xd0\xb0\xd0\xbb\xd0\xb8\xd1\x8f' )
+
+print( '3. ', encoded_bytes.decode('utf-8') )
+{% endhighlight %}
+
+Please note that the <span class="keyword">
+byte</span> sequence in:
+
+{% highlight python %}
+print( '2. ', b'\xd0\x90\xd0\xb2\xd1\x81\xd1\x82\xd1\x80\xd0\xb0\xd0\xbb\xd0\xb8\xd1\x8f' )
+{% endhighlight %}
+
+is copied from the output of:
+
+{% highlight python %}
+print( '1. ', encoded_bytes )
+{% endhighlight %}
+
+If we search Google for
+<span class="keyword">
+utf-8 online encoder</span>, we will find several sites. These two
+( 2 ) sites
+<a href="https://mothereff.in/utf-8" title="UTF-8 encoder/decoder"
+target="_blank">https://mothereff.in/utf-8</a> and
+<a href="https://www.browserling.com/tools/utf8-encode" title="UTF8 Encoder"
+target="_blank">https://www.browserling.com/tools/utf8-encode</a> produce
+the same output as
+<span class="keyword">
+string.encode( 'utf-8' )</span> (
+<a href="https://docs.python.org/3/library/stdtypes.html#str.encode"
+title="str.encode(encoding='utf-8', errors='strict')"
+target="_blank">https://docs.python.org/3/library/stdtypes.html#str.encode</a> ).
+
+Relating to <span class="keyword">
+Python</span>,
+apart from <span class="keyword">
+\xd0\x90</span>, we also see references to 
+<span class="keyword">
+\u9999</span>, e.g. 
+<span class="keyword">
+\u0410</span>. Take an example from this post
+<a href="https://stackoverflow.com/questions/10569438/how-to-print-unicode-character-in-python"
+title="How to print Unicode character in Python?"
+target="_blank">https://stackoverflow.com/questions/10569438/how-to-print-unicode-character-in-python</a>:
+
+{% highlight python %}
+print('\u0420\u043e\u0441\u0441\u0438\u044f')
+{% endhighlight %}
+
+which will produce:
+
+```
+Россия
+```
+
+This post
+<a href="https://stackoverflow.com/questions/55737130/relationship-between-x-and-unicode-codepoints"
+title="relationship between \x and unicode codepoints"
+target="_blank">https://stackoverflow.com/questions/55737130/relationship-between-x-and-unicode-codepoints</a>
+which refers to <a href="https://www.fileformat.info/info/unicode/utf8.htm"
+title="UTF-8 Encoding"
+target="_blank">https://www.fileformat.info/info/unicode/utf8.htm</a> which explains 
+the differences between the two.
+
+Still, resulting from
+<span class="keyword">
+utf-8 online encoder</span> search. This site
+<a href="https://checkserp.com/encode/utf8/"
+title="Utf-8 Converter"
+target="_blank">https://checkserp.com/encode/utf8/</a> produces
+<span class="keyword">
+Unicode code point</span> string. I.e., if we use it to
+<span class="keyword">
+“UTF-8 Encode”</span>
+<span class="keyword">
+Россия</span>, ( the above example ), we will get back
+<span class="keyword">
+\u0420\u043e\u0441\u0441\u0438\u044f</span> -- which matches what
+we have above.
+
+Naturally, we would want to encode
+<span class="keyword">
+UTF-8</span> to <span class="keyword">
+Unicode code point</span> string for our own understanding; i.e. encode
+<span class="keyword">
+Россия</span> to
+<span class="keyword">
+\u0420\u043e\u0441\u0441\u0438\u044f</span>.
+
+I could not find any example on how to do that. In this post,
+<a href="https://stackoverflow.com/questions/2269827/how-to-convert-an-int-to-a-hex-string"
+title="How to convert an int to a hex string?"
+target="_blank">https://stackoverflow.com/questions/2269827/how-to-convert-an-int-to-a-hex-string</a>,
+user
+<a href="https://stackoverflow.com/users/8011839/chengcheng-zhang"
+title="Chengcheng Zhang"
+target="_blank">Chengcheng Zhang</a> discusses to how get
+characters' <span class="keyword">
+Hex codes</span> equivalent from the characters' integer
+<span class="keyword">
+Unicode codes</span>:
+
+{% highlight python %}
+(434).to_bytes(4, byteorder='big').hex()
+{% endhighlight %}
+
+See also:
+
+<ul>
+<li>
+<a href="https://docs.python.org/3/library/functions.html#ord" title="ord( c )"
+target="_blank">https://docs.python.org/3/library/functions.html#ord -- ord( c )</a>
+</li>
+
+<li style="margin-top:10px">
+<a href="https://docs.python.org/3/library/stdtypes.html" title="Built-in Types"
+target="_blank">https://docs.python.org/3/library/stdtypes.html -- int.to_bytes( ... )</a>
+</li>
+
+<li style="margin-top:10px">
+<a href="https://docs.python.org/3/library/functions.html#hex" title="hex( x )"
+target="_blank">https://docs.python.org/3/library/functions.html#hex -- hex( x )</a>
+</li>
+</ul>
+
+The following example is my own attempt at going about this:
+
+{% highlight python %}
+australia_in_russian = 'Австралия'
+
+unicode_point_hex_str = ''
+for c in australia_in_russian:
+
+    unicode_point_hex_char = '\\u' + (ord(c)).to_bytes(2, byteorder='big').hex()
+
+    unicode_point_hex_str += unicode_point_hex_char \
+        if len(unicode_point_hex_str) > 0 else unicode_point_hex_char
+
+    print( '''c: {}, ord(c): {}, encode: {}, code point: {}'''. \
+	    format( c, ord(c), c.encode('utf-8'), unicode_point_hex_char ) )
+
+print( '1. ', unicode_point_hex_str )
+
+"""
+unicode_point_hex_str should be a string.
+"""
+print( '2. ', type(unicode_point_hex_str) )
+
+"""
+The literal string in 3. and 4. is the print out from: print( '1. ', unicode_point_hex_str )
+"""
+print( '3. ', type('\u0410\u0432\u0441\u0442\u0440\u0430\u043b\u0438\u044f') )
+print( '4. ', '\u0410\u0432\u0441\u0442\u0440\u0430\u043b\u0438\u044f' )
+
+"""
+See https://stackoverflow.com/questions/24242433/how-to-convert-a-raw-string-into-a-normal-string
+
+Also "codecs — Codec registry and base classes"
+    https://docs.python.org/3/library/codecs.html#text-encodings
+
+    unicode_escape is explained under "Text Encodings".
+"""
+import codecs
+str = codecs.decode( unicode_point_hex_str, 'unicode_escape' )
+print( '5. ', str )
+{% endhighlight %}
+
+For:
+
+{% highlight python %}
+print( '1. ', unicode_point_hex_str )
+{% endhighlight %}
+
+I was expecting to see the
+<span class="keyword">
+Russian</span> text of
+<span class="keyword">
+Australia</span>; simply, as we've seen above, when printing hard-coded
+<span class="keyword">
+Unicode code point</span> string, the natural text equivalent gets
+printed; but it prints out the
+<span class="keyword">
+Unicode code point</span> string.
+The last four ( 4 )
+<span class="keyword">
+print</span> statements are debugging statements to understand why 
+I did not get the natural text -- it has something to do with 
+<span class="keyword">
+raw string</span>, the hard-coded ones are not 
+<span class="keyword">
+“raw”</span>. The codes should be self-documenting.
+
+There is still a lot to this subject. I was just seeking to answer my own, 
+one question. I hope you find this post useful and thanking you for visiting. 
