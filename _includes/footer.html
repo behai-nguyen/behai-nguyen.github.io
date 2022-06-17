@@ -2,6 +2,16 @@
   <data class="u-url" href="{{ "/" | relative_url }}"></data>
 
   <div class="wrapper">
+    <div class="utterances">
+		<script src="https://utteranc.es/client.js"
+			repo="behai-nguyen/behai-nguyen.github.io"
+			issue-term="pathname"
+			label="Comment"
+			theme="github-light"
+			crossorigin="anonymous"
+			async>
+		</script>	  
+    </div>
 
     <h2 class="footer-heading">{{ site.title | escape }}</h2>
 
@@ -21,17 +31,6 @@
         </ul>
       </div>
 	  
-	  <div class="utterances">
-		<script src="https://utteranc.es/client.js"
-			repo="behai-nguyen/behai-nguyen.github.io"
-			issue-term="pathname"
-			label="Comment"
-			theme="github-light"
-			crossorigin="anonymous"
-			async>
-		</script>	  
-	  </div>
-
       <div class="footer-col footer-col-2">
         {%- include social.html -%}
       </div>
