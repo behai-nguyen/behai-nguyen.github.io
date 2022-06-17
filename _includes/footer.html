@@ -20,6 +20,17 @@
             {%- endif -%}
         </ul>
       </div>
+	  
+	  <div class="utterances">
+		<script src="https://utteranc.es/client.js"
+			repo="behai-nguyen/behai-nguyen.github.io"
+			issue-term="pathname"
+			label="Comment"
+			theme="github-light"
+			crossorigin="anonymous"
+			async>
+		</script>	  
+	  </div>
 
       <div class="footer-col footer-col-2">
         {%- include social.html -%}
@@ -28,16 +39,6 @@
       <div class="footer-col footer-col-3">
         <p>{{- site.description | escape -}}</p>
       </div>
-	  
-      <script src="https://utteranc.es/client.js"
-        repo="behai-nguyen/behai-nguyen.github.io"
-        issue-term="pathname"
-        label="Comment"
-        theme="github-light"
-        crossorigin="anonymous"
-        async>
-      </script>
-	  
     </div>
 
   </div>
