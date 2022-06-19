@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "GitHub: Enable Comments Using https://utteranc.es/ Comment Widget."
+title: "GitHub: enable comments using Utterances comment widget."
 
 ---
 
@@ -15,10 +15,10 @@ comment widget.
 
 This is how I did it:
 
-❶ Install 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="medium-font-size">1.</span> Install 
+<span class="keyword">
 utterances</span> app for the target 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 GitHub repo</span> via the following link 
 <a href="https://github.com/apps/utterances/installations/new" 
 title="Setuptools Keywords" 
@@ -26,10 +26,10 @@ target="_blank">https://github.com/apps/utterances/installations/new</a>
 -- the instructions should be self-explanatory. After each step, 
 please read the on screen instructions carefully.
 
-❷ I'd like to enable comments for my 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="medium-font-size">2.</span> I'd like to enable comments for my 
+<span class="keyword">
 GitHub Pages</span>, so the repo I selected is 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 https://github.com/behai-nguyen/behai-nguyen.github.io</span>. 
 The plugin snippet is customised like below:
 
@@ -44,7 +44,7 @@ The plugin snippet is customised like below:
 </script>
 {% endhighlight %}
 
-❸ The 
+<span class="medium-font-size">3.</span> The 
 <a href="https://jekyllrb.com/" 
 title="Jekyll" target="_blank">Jekyll -- https://jekyllrb.com/</a> theme
 I'm using is 
@@ -52,7 +52,7 @@ I'm using is
 title="minima 2.5.1" 
 target="_blank">minima 2.5.1 -- https://rubygems.org/gems/minima/versions/2.5.1
 </a>, I modified the 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 footer.html</span> file to include the plugin snippet as shown:
 
 ```
@@ -110,7 +110,7 @@ File: \_includes\footer.html
 
 Of course, you can place it anywhere you like.
 
-❹ After update <span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="medium-font-size">4.</span> After update <span class="keyword">
 GitHub repo</span> with the change, we might need to issue the followings to 
 get it to rebuild:
 
@@ -127,7 +127,7 @@ The
 <a href="https://utteranc.es/" 
 title="Utterances Widget" target="_blank">Utterances Widget -- https://utteranc.es/</a>
 supports 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 Markdown Styling</span> -- see 
 <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Here-Cheatsheet#code" 
 title="Markdown Here Cheatsheet" target="_blank">Markdown Here Cheatsheet</a>.
@@ -135,25 +135,25 @@ title="Markdown Here Cheatsheet" target="_blank">Markdown Here Cheatsheet</a>.
 
 <li style="margin-top:10px;">
 To comment, users must sign into their 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 GitHub</span> account. Anonymous users are not supported.
 </li>
 
 <li style="margin-top:10px;">
 It seems that after submitting comments, users can't edit them. 
 Only the 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 GitHub repo</span> owners can edit comments ( or issues ).
 </li>
 
 <li style="margin-top:10px;">
 Comments are stored as issues inside the target
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 GitHub repo</span> -- we, as target repo owner, can manage these issues.
 </li>
 </ul>
 
 I hope you get something out of this post... If you happen to read it on 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 GitHub</span> and found it useful, please give me a comment 😆...
 and thank you for reading.
