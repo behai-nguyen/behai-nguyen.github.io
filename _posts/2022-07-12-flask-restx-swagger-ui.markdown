@@ -12,6 +12,15 @@ Flask-RESTX provides support for building REST APIs. The resulting APIs come aut
 | *Python: Flask-RESTX and the Swagger UI automatic documentation.* |
 
 <p>
+<strong>Updated 14/July/2022:</strong> Final code for this post can be 
+cloned from <span class="keyword">GitHub</span> using:
+</p>
+
+```
+git clone -b v1.0.0 https://github.com/behai-nguyen/flask-restx-demo.git
+```
+
+<p>
 I've recently checked out <a href="https://flask-restx.readthedocs.io/en/latest/index.html" title="Flask-RESTX" target="_blank">Flask-RESTX</a>, and along with it <a href="https://swagger.io/resources/open-api/" title="OpenAPI Specification" target="_blank">OpenAPI Specification</a>, and <span class="keyword"> Swagger UI</span>, which:
 </p>
 
@@ -1075,3 +1084,12 @@ make any mistakes in the codes and in the post. This's merely scratching the sur
 There're still much more to the subject. Thank you for reading and I hope you find 
 this one useful.
 </p>
+
+<p>
+<strong>Updated 14/July/2022:</strong> Final code for this post can be 
+cloned from <span class="keyword">GitHub</span> using:
+</p>
+
+```
+git clone -b v1.0.0 https://github.com/behai-nguyen/flask-restx-demo.git
+```
