@@ -801,6 +801,14 @@ we have the specified packages installed.
 </h4>
 
 <p>
+<strong>Updated 21/07/2022</strong> -- the code can be cloned from <span class="keyword">GitHub</span> using:
+</p>
+
+```
+git clone -b v1.0.0 https://github.com/behai-nguyen/app-demo.git
+```
+
+<p>
 Now create the rest of the application:
 </p>
 
