@@ -1,0 +1,74 @@
+---
+layout: post
+title: "2000s flashback: a web API service..."
+description: The years were 2001-2002 and we were returning HTTP requests' data using “our own text format” 😂 😂
+tags:
+- Year 2000s
+- web API service
+- custom text format
+---
+
+*The years were 2001-2002 and we were returning HTTP requests' data using “our own text format” 😂 😂*
+
+| ![040-feature-image.jpg](https://behainguyen.files.wordpress.com/2022/10/040-feature-image.jpg) |
+|:--:|
+| *2000s flashback: a web API service...* |
+
+Going through my old files, I happened to find this diagram on a larger 
+project which I was employed as a developer back in late 2001 early 2002:
+
+![040-diagram.jpg](https://behainguyen.files.wordpress.com/2022/10/040-diagram.jpg)
+
+The diagram was by my project manager. 
+Other team members and I were assigned to the 
+<span style="color:blue;">blue box</span>: 
+
+<ul>
+<li style="margin-top:5px;">
+For web clients, we returned complete 
+<span class="keyword">
+HTML</span> pages.
+</li>
+<li style="margin-top:10px;">
+For 
+<span class="keyword">
+Windows executable</span> clients, we returned only data. So the
+web server application was also kind of providing 
+<span class="keyword">
+Web API service</span>.
+</li>
+</ul>
+
+Back then, 
+<span class="keyword">
+XML</span> was only a few years old... The project manager decided
+not to use it: too heavy with all the tags, bandwidth and speed 
+were factors in this decision.
+<span class="keyword">
+JSON</span> has just come out, and we were not yet aware of it...
+I don't recall it was ever mentioned in any of the project meetings.
+
+The project manager decided to go with “our own text format”: we
+packaged data up on the server-side using this format, returned it
+via <span class="keyword">
+HTTPS</span>, and at the client-side, the data was parsed into the 
+<span class="keyword">
+Borland VCL client dataset</span> ready for further manipulation.
+
+It was fun, but time-consuming, column values boundaries did pose
+some difficulties especially with blob values. 2022 -- we just use 
+<span class="keyword">JSON</span> 😝
+
+I have forgotten about this project... finding this diagram brings
+back some memories, I felt the urge to write this post.
+
+Back then, online gaming was still a new industry, there were 
+new legislations just put in place, we were not required to go 
+through any security check, but we were issued with a <em>special 
+employee licence</em>, there were certain gambling activities that 
+we were not allowed to participate while working in the industry:
+
+![040-employee-card.jpg](https://behainguyen.files.wordpress.com/2022/10/040-employee-card.jpg)
+
+Over the years... my hair decided to go... Painful, but what can I do
+😾. Thank you for reading. And stay safe.
