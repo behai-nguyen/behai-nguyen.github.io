@@ -23,7 +23,7 @@ And as per the official documentation, it supports ES6.
 For CSS, I've tried 
 <a href="https://www.npmjs.com/package/uglifycss" title="UglifyCSS" target="_blank">UglifyCSS</a>,
 and it seems to do what it's supposed to do. The last publication date for this package is about
-5 ( five ) years ago. Its weekly download is around 40,000+ ( fourty thousands plus )
+5 ( five ) years ago. Its weekly download is around 40,000+ ( forty thousands plus )
 times.
 
 Both of these require 
