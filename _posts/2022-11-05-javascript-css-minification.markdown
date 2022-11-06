@@ -13,7 +13,7 @@ tags:
 
 | ![044-feature-image.png](https://behainguyen.files.wordpress.com/2022/11/044-feature-image.png) |
 |:--:|
-| <em><span style="color:rgb(17, 17, 17);">Web browsers: confirm leaving page when there is modified data.</span></em> |
+| *JavaScript and CSS minification.* |
 
 In my understanding, 
 <a href="https://www.npmjs.com/package/uglify-js" title="UglifyJS 3" target="_blank">UglifyJS 3</a>
@@ -29,10 +29,10 @@ times.
 Both of these require 
 <a href="https://nodejs.org/en/" title="NodeJS" target="_blank">NodeJS</a> 
 -- the version I have installed is 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 v18.12.0</span>. Follow the instructions, I've chosen to install them 
 globally on my 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 Windows 10 Pro version 10.0.19044 Build 19044</span>:
 
 <strong>Installing UglifyJS 3 globally:</strong>
@@ -55,7 +55,7 @@ C:\Users\behai\AppData\Roaming\npm\uglifycss
 ```
 
 Where 
-<span style="font-family:Monaco,Consolas,Menlo,Courier,monospace;">
+<span class="keyword">
 behai</span> is the Windows user I've logged in with, and installed the two packages.
 
 Following are two Windows batch files I've written for my project:
