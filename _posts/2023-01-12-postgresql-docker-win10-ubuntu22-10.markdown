@@ -302,6 +302,16 @@ Final command:
 $ sudo docker run -d -it -p 5432:5432 --name postgresql-docker --mount type=bind,source=/home/behai/Public/database/postgresql,target=/var/lib/postgresql/data -e POSTGRES_PASSWORD_FILE=/var/lib/postgresql/data/secrets/pgpass.conf postgres:latest
 ```
 
+❺ <strong>Updated on 16/01/2023 -- </strong> open port <em>5432</em> for external access:
+
+```
+$ sudo ufw allow from any to any port 5432 proto tcp
+```
+
+Since this is a development environment, there is no IP address restriction applied, in a production environment, I imagine only certain IP addresses are allowed. Please be mindful of this.
+
+<strong>16/01/2023 update ends.</strong>
+
 <a id="pgadmin-4-ubuntu-postgresql-server"></a>From Windows 10, to connect <code>pgAdmin 4</code> 
 to Docker PostgresSQL Server 15.1 running on HP-Pavilion-15, register a new server:
 
