@@ -9,7 +9,7 @@ tags:
 - SMTP
 ---
 
-*We look at the most basically approach to send emails in Jenkins. The SMTP server we use is the Gmail SMTP server.*
+*We look at the most basic approach to send emails in Jenkins. The SMTP server we use is the Gmail SMTP server.*
 
 | ![056-feature-image-1.png](https://behainguyen.files.wordpress.com/2023/02/056-feature-image-1.png) |
 |:--:|
