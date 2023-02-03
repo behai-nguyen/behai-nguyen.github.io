@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "CI/CD #02. Jenkins: basic email using your Gmail account."
-description: We look at the most basically approach to send emails in Jenkins. The SMTP server we use is the Gmail SMTP server.
+description: We look at the most basic approach to send emails in Jenkins. The SMTP server we use is the Gmail SMTP server.
 tags:
 - CICD
 - Jenkins
