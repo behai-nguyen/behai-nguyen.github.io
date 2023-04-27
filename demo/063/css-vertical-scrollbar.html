@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>CSS: Vertical ScrollBar Management</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <style>
+		body {
+			display: flex;
+			flex-wrap: nowrap;
+			height: 100vh;
+			height: -webkit-fill-available;
+			max-height: 100vh;
+			overflow-x: hidden;
+			overflow-y: hidden;
+		}
+
+		.vertical-scrollable {
+			overflow-y: auto;
+			overflow-x: hidden;
+			scrollbar-gutter: stable;
+		}
+		
+        .data-list-height {
+			height:400px; 
+			max-height:400px; 		
+        }		
+    </style>
+
+    <script>
+		// This function is copied from the official page.
+		function bindToolTipElements() {
+			var tooltipTriggerList = [].slice.call( document.querySelectorAll('[data-bs-toggle="tooltip"]') );
+
+			var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+				return new bootstrap.Tooltip(tooltipTriggerEl)
+			});
+		};
+
+        function populateAvailableList() {
+
+            let renderToContainer = $( 'div.selector-available-data' );
+            let moveToContainer = $( 'div.selector-selected-data' );
+
+            for ( var i = 1; i <= 50; i++ ) {
+                renderAnEntry( i, `Data Item ${i}`, renderToContainer, moveToContainer );
+            };
+        };
+
+        $( document ).ready( function() {
+            bindToolTipElements();
+
+            populateAvailableList();
+        });
+
+		function renderAnEntry( id, name, renderToContainer, moveToContainer ) {
+			let targetList = renderToContainer.attr( 'data-render-target' ) == 'true';
+
+			let html = ( !targetList ) ?
+				`<div class="row mt-1 selector-item-entry"
+				 data-item-id="${id}" data-item-name="${name}">
+					<div class="col-2">${id}</div>
+					<div class="col-8">${name}</div>
+					<div class="col-2 text-center"><button type="button" class="btn btn-secondary btn-sm selector-item-click">&nbsp;<span class="bi-check-square-fill"></span>&nbsp;</button></div>
+				</div>` :
+
+				`<div class="row mt-1 selector-item-entry" data-item-id="${id}" data-item-name="${name}">
+					<div class="col">
+						<div class="row">
+							<div class="col-2">${id}</div>
+							<div class="col-8">${name}</div>
+							<div class="col-2 text-center"><button type="button" class="btn btn-danger btn-sm selector-item-click">&nbsp;<span class="bi-trash"></span>&nbsp;</button></div>
+						</div>
+					</div>
+				</div>`;
+
+			var row = $( html );
+			renderToContainer.append( row );
+
+			// For both lists, div.selector-item-entry is the containing row.
+			triggerElem = $( 'button.selector-item-click', row );
+			triggerElem.on( 'click', function( event ) {
+				var parent = $( event.target ).parent().closest( 'div.selector-item-entry' );
+				var id = parent.attr( 'data-item-id' );
+				var name = parent.attr( 'data-item-name' );
+
+				parent.remove();
+
+				renderAnEntry( id, name, moveToContainer, renderToContainer );
+			});
+		};
+
+    </script>
+</head>
+
+<body class="d-flex flex-column h-100" style="background-color:lemonchiffon;">
+
+	<div class="d-flex row justify-content-center h-100">
+		<div class="col">
+
+			<div class="row mx-1" style="background-color:var(--bs-gray-400)">
+				<div class="col-6">
+					<div class="row py-2 border-bottom vertical-scrollable">
+						<div class="col-2">Id</div>
+						<div class="col-8">Name</div>
+						<div class="col-2 text-center text-primary bi-question-circle-fill"
+							 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+							 title="Please click on <span class=&quot;text-secondary&quot;>&nbsp;
+							 <span class=&quot;bi-check-square-fill&quot;></span>&nbsp;</span> button 
+							 to select the entry.">
+						</div>
+					</div>
+				</div>
+
+				<div class="col-6">
+					<div class="row py-2 border-bottom vertical-scrollable">
+						<div class="col-2">Id</div>
+						<div class="col-8">Name</div>
+						<div class="col-2 text-center text-primary bi-question-circle-fill"
+							 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+							 title="Please click on <span class=&quot;text-danger&quot;>&nbsp;
+							 <span class=&quot;bi-trash&quot;></span>&nbsp;</span> button to 
+							 remove the assigned entry.">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row mx-1" style="background-color:lightblue;">
+				<div class="col-6 vertical-scrollable data-list-height selector-available-data"></div>
+				<div class="col-6 vertical-scrollable data-list-height selector-selected-data" data-render-target="true"></div>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
