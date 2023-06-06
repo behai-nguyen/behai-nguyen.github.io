@@ -222,6 +222,63 @@ title="CI/CD #02. Jenkins: basic email using your Gmail account." target="_blank
 </li>
 </ul>
 
+## Updated on 07/06/2023 -- Starts
+
+The above Jenkins Pipeline code will work ONLY with <code>Pipeline script from SCM</code>, discussed later. It does NOT ALWAYS work with <code>GitHub project</code>, also discussed later.
+
+<strong><code>GitHub project</code> will not clone the repo automatically! I made the mistake of thinking that it does: possibly because I already had the repo cloned on the local Jenkins workspace.</strong>
+
+We need to include the stage to clone the repo <code>Clone Git repo</code>. The Jenkins Pipeline code for <code>GitHub project</code>, hence, is:
+
+```
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Git repo') {
+            steps {
+                git(
+                    url: "https://github.com/behai-nguyen/bh_apistatus.git",
+                    branch: "main",
+                    changelog: false,
+                    poll: false
+                )
+            }
+        }
+        
+        stage('Pytest') {
+            steps {
+                sh("${JENKINS_HOME}/scripts/pytest.sh ${WORKSPACE}")
+            }
+        }
+		
+        stage('Email Notification') {
+            steps {
+                mail(body: "${JOB_NAME}, build ${BUILD_NUMBER} Pytest completed.", subject: 'Pytest completed.', to: 'behai_nguyen@hotmail.com')
+            }
+        }		
+    }
+}
+```
+
+Also, in <code>/var/lib/jenkins/scripts/pytest.sh</code>, the comment:
+
+```
+...
+# The repo is cloned automatically by Jenkins. This script does the followings:
+...
+```
+
+is no longer true. It should be changed to:
+
+```
+...
+# This script does the followings:
+...
+```
+
+## Updated on 07/06/2023 -- Ends
+
 <h3>On double quotes (<code>""</code>) and single quotes (<code>''</code>)</h3>
 
 In the above Pipeline script, <strong>line 7</strong> uses double quotes (<code>""</code>).
