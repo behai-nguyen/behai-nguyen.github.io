@@ -93,6 +93,14 @@ I did try port 587, it does not work yet!
 </li>
 </ul>
 
+## Updated on 12/06/2023 -- Starts
+
+I do apologise, I was wrong on ports <code>port 465</code> and <code>port 587</code>. Both ports are working just fine, but we need to select another option correctly: please see section ❷ below.
+
+When both <code>Use SSL</code> and <code>Use TLS</code> are checked, <code>Use SSL</code> seems to take precedence, SSL requires <code>port 465</code>; while TLS uses port <code>port 587</code>. Tick only <code>Use TLS</code> and <code>port 587</code> will work. In fact, <code>port 587</code> is most preferred, follow by <code>port 465</code>.
+
+## Updated on 12/06/2023 -- Ends
+
 ❷ Configure Jenkins.
 
 <strong>Please note</strong>, during the configuration process, sometimes 
@@ -122,6 +130,14 @@ then click on the <code>Test configuration</code> button. After a little while, 
 the <em>Email was successfully sent</em> as per the screen below:
 
 ![056-06.png](https://behainguyen.files.wordpress.com/2023/02/056-06.png)
+
+## Updated on 12/06/2023 -- Starts
+
+Please note, on the above screenshot, both <code>Use SSL</code> and <code>Use TLS</code> are checked:
+
+When both <code>Use SSL</code> and <code>Use TLS</code> are checked, <code>Use SSL</code> seems to take precedence, SSL requires <code>port 465</code>; while TLS uses port <code>port 587</code>. Tick only <code>Use TLS</code> and <code>port 587</code> will work. In fact, <code>port 587</code> is most preferred, follow by <code>port 465</code>.
+
+## Updated on 12/06/2023 -- Ends
 
 I can confirm that I did receive the email to address <strong>Test e-mail recipient</strong>,
 whose content is:
