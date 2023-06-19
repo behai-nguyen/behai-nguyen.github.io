@@ -126,7 +126,7 @@ Remove <code>app_demo/</code> with:
 jenkins@hp-pavilion-15:~/workspace$ rm -rf app_demo
 ```
 
-❹ Next, we need to make our Jenkins server available publicly. For this,
+❹ <a id="free-ngrok-setup">Next, we need to make our Jenkins server available publicly.</a> For this,
 we're using <code>ngrok</code> -- this has been discussed previously in
 <a href="https://behainguyen.wordpress.com/2023/02/#install-ngrok-ubuntu"
 title="Install ngrok for Ubuntu 22.10 kinetic" target="_blank">Install ngrok for Ubuntu 22.10 kinetic</a>.
@@ -149,7 +149,7 @@ the trailing <code><strong><span style="color:blue;">/</span></strong></code>!
 
 The complete Git payload URL is <code>https://5b3c-58-109-142-244.ngrok-free.app/github-webhook/</code>.
 
-❺ The next step is to set up webhook for repo <code>https://github.com/behai-nguyen/app-demo.git</code>.
+❺ <a id="setup-repo-webhook">The next step is to set up webhook for repo <code>https://github.com/behai-nguyen/app-demo.git</code>.</a>
 A similar process has been described before, in
 <a href="https://behainguyen.wordpress.com/2023/02/#github-webhook-test-our-server"
 title="Set up GitHub Webhook and test our server" target="_blank">Set up GitHub Webhook and test our server</a>.
