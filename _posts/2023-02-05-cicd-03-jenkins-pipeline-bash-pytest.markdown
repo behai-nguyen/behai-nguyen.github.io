@@ -77,12 +77,12 @@ $PYENV_HOME/bin/pytest
 C:\>ssh jenkins@hp-pavilion-15
 ```
 
-<a id="bash-script"></a>
-
+<a id="bash-script">
 The home directory of user <code>jenkins</code> is <code>/var/lib/jenkins</code>.
 Create the new sub-directory <code>scripts/</code> under home directory, and
 create the <code>pytest.sh</code> Bash script file under this 
 <code>/var/lib/jenkins/scripts</code>.
+</a>
 
 ```
 Content of /var/lib/jenkins/scripts/pytest.sh:
@@ -189,9 +189,9 @@ of this approach is that we can test, such as this Bash script, in
 isolation. And also, reducing the Pipeline code, making it easier to
 manage and follow.
 
-<a id="jenkins-pipeline"></a>
-
+<a id="jenkins-pipeline">
 Following is a generic Jenkins Pipeline code, which uses the above script:
+</a>
 
 {% highlight pipeline linenos %}
 pipeline {
