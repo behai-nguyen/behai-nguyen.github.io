@@ -16,7 +16,7 @@ tags:
 | *Python: A simple web API to search for Australian postcodes based on locality aka suburb.* |
 
 🚀 Full source code and documentation: 
-<a href="https://github.com/behai-nguyen/bh-aust-postcode" title="https://github.com/behai-nguyen/bh-aust-postcode" target="_blank">https://github.com/behai-nguyen/bh-aust-postcode</a>
+<a href="https://github.com/behai-nguyen/bh_aust_postcode" title="https://github.com/behai-nguyen/bh_aust_postcode" target="_blank">https://github.com/behai-nguyen/bh_aust_postcode</a>
 
 The web service also implements a CLI which downloads Australian postcodes 
 in JSON format, then extracts locality, state and postcode fields and stores
@@ -93,7 +93,7 @@ signifies search does not return any localities. Always check for
 <code>['status']['code']</code> of <code>HTTPStatus.OK.value</code> before
 proceeding any further with the result.
 
-🚀 <a href="https://github.com/behai-nguyen/bh-aust-postcode/blob/main/README.md" title="GitHub Read Me" target="_blank">GitHub Read Me</a>
+🚀 <a href="https://github.com/behai-nguyen/bh_aust_postcode/blob/main/README.md" title="GitHub Read Me" target="_blank">GitHub Read Me</a>
 should have all necessary documentation on how to get this project to run on your development server, I have tested for both Windows 10 and Ubuntu 22.10.
 
 My other post 

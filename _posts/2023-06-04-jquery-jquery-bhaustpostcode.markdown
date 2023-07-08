@@ -24,7 +24,7 @@ target="_blank">Python: A simple web API to search for Australian postcodes base
 
 <p>
 The plugin full documentation is the following GitHub <code>README.md</code> page 
-<a href="https://github.com/behai-nguyen/bh-aust-postcode/tree/main/jquery-bhaustpostcode#readme"
+<a href="https://github.com/behai-nguyen/bh_aust_postcode/tree/main/jquery-bhaustpostcode#readme"
 title="jQuery plugin: bhAustPostcode" target="_blank">jQuery plugin: bhAustPostcode</a>.
 </p>
 

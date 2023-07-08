@@ -209,10 +209,10 @@ GRUB menu, that was why I did a fresh reinstallation.
 </h3>
 
 This step has been documented in 
-<a href="https://github.com/behai-nguyen/bh-aust-postcode/blob/main/README.md" title="GitHub Read Me" target="_blank">GitHub Read Me</a>.
+<a href="https://github.com/behai-nguyen/bh_aust_postcode/blob/main/README.md" title="GitHub Read Me" target="_blank">GitHub Read Me</a>.
 It is reproduced in this section.
 
-Get the repo <a href="https://github.com/behai-nguyen/bh-aust-postcode.git" title="https://github.com/behai-nguyen/bh-aust-postcode.git" target="_blank">https://github.com/behai-nguyen/bh-aust-postcode.git</a>
+Get the repo <a href="https://github.com/behai-nguyen/bh_aust_postcode.git" title="https://github.com/behai-nguyen/bh_aust_postcode.git" target="_blank">https://github.com/behai-nguyen/bh_aust_postcode.git</a>
 to directory <code>/home/behai/webwork/bh_aust_postcode</code>. Its content should 
 look like the screenshot below:
 
