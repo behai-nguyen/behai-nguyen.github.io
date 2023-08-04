@@ -1,0 +1,367 @@
+---
+layout: post
+title: "Rust: baby step -- a Fibonacci sequence function."
+
+custom-css-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
+
+custom-javascript-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
+
+gallery-image-list-1:
+    - "https://behainguyen.files.wordpress.com/2023/08/076-01.png"
+    - "https://behainguyen.files.wordpress.com/2023/08/076-02.png"
+
+gallery-image-list-2:
+    - "https://behainguyen.files.wordpress.com/2023/08/076-03.png"
+    - "https://behainguyen.files.wordpress.com/2023/08/076-04.png"
+    - "https://behainguyen.files.wordpress.com/2023/08/076-05.png"
+    - "https://behainguyen.files.wordpress.com/2023/08/076-06.png"
+
+description: I have spent the last twenty (20) odd days learning Rust :) We should apply what we have learned, so that the knowledge becomes ours. We are looking at a simple “traditional” recursive function which returns the nth Fibonacci number.
+tags:
+- Rust
+- Fibonacci
+---
+
+<em style="color:#111;">I have spent the last twenty (20) odd days learning Rust :) We should apply what we have learned, so that the knowledge becomes ours. We are looking at a simple “traditional” recursive function which returns the nth Fibonacci number.</em>
+
+| ![076-feature-image.png](https://behainguyen.files.wordpress.com/2023/08/076-feature-image.png) |
+|:--:|
+| *Rust: baby step -- a Fibonacci sequence function.* |
+
+<a href="https://www.rust-lang.org/tools/install"
+title="Installing Rust" target="_blank">Installing Rust</a>
+on Windows 10 and Ubuntu 22.10 is fairly simple and should take 
+no times at all.
+
+For the tutorial, I went through all twenty (20) chapters of 
+<a href="https://doc.rust-lang.org/book/" title="“the book”" target="_blank">“the book”</a> -- 
+it felt like university all over again 😂 I've been warned that
+the learning curve is very steep, but I was not able to anticipate 
+how steep it is! 
+
+I appreciate 
+<a href="https://doc.rust-lang.org/book/" title="“the book”" target="_blank">“the book”</a>,
+I think it covers all important aspects of Rust. 
+I certainly don't remember all the things I've learned, but 
+I should know what to look for when I run into problems.
+
+In my mind, the concept of ownership in Rust is what makes
+it hard. I think once we have a hang of it, it should
+be a pleasurable language to use. I like the fact that 
+the compiler does a lot to mitigate run-time problems
+as much as possible.
+
+Rust aims to be a low level language. And it can be used to program for
+<a href="https://www.youtube.com/watch?v=SDmZoE3os0Y"
+title="bare metal microcontrollers" target="_blank">bare metal microcontrollers</a>,
+too. I have positive opinions of Rust. I've been exposed to C and C++,
+I feel that Rust is not any harder than the two mentioned. Even though
+Rust has a different set of terminologies, some of Rust features I can relate
+to Delphi's, which is the language I've used the longest.
+
+With NodeJs and Python, within the first hours of learning, I was able 
+to connect to different databases and running queries happily. With Rust, 
+after twenty odd days, I feel like I know nothing, perhaps because, even 
+just to do some meaningful programming exercise in Rust, we need to be 
+fluent in a lot of Rust features? So I've decided to take simple steps 
+to absorb Rust. Hence this post, a documentation of my Rust 
+learning process.
+
+For this starting exercise, I am going back to my very first programming 
+book, which I bought on March 12, 1991:
+<span style="color: blue;">
+Elliot B. Koffman and Bruce R. Maxim, <em>Turbo Pascal</em>, 2nd Edition 
+Covers 4.0/5.0, Addison-Wesley Publishing Company, Inc., May 1989, U.S.A.,
+</span>
+and translate the Fibonacci recursive function into Rust. I'm reprinting
+the function of the above book verbatim:
+
+```
+Figure 15.13 Recursive Function Fibonacci, page 608:
+```
+
+```pascal
+function Fibonacci( N: Integer ) : Integer;
+{
+    Computes the Nth Fibonacci number.
+    Pre: N is defined and N > 0
+    Post: Returns the Nth Fibonacci number.
+}
+begin {Fibonacci}
+  if (N = 1) or (N = 2) then
+    Fibonacci := 1
+  else
+    Fibonacci := Fibonacci(N-2) + Fibonacci(N-1)
+end; {Fibonacci}
+```
+
+(I don't think Turbo Pascal ever had the function <code>Result</code>
+variable, it was introduced during the Borland Delphi versions?)
+
+-- For more information on <a href="https://en.wikipedia.org/wiki/Fibonacci_sequence" title="Fibonacci sequence" target="_blank">Fibonacci sequence</a>.
+
+I fancy a library package named <code>maths</code>, while inside the 
+<code>/rust</code> sub-directory, we run the following command to
+create it:
+
+```
+$ cargo new maths --lib
+```
+
+On Windows 10, the source files for this library package looks like:
+
+```
+F:\rust>tree maths /F /A
+```
+
+```
+F:\RUST\MATHS
+|   .gitignore
+|   Cargo.lock
+|   Cargo.toml
+|   
++---src
+|       lib.rs
+|       main.rs
+...
+```
+
+And on Ubuntu 22.10:
+
+```
+behai@hp-pavilion-15:~/rust$ tree maths/
+```
+
+```
+maths/
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── lib.rs
+│   └── main.rs
+...
+```
+
+<strong>-- Please note:</strong> <code>main.rs</code> was created manually.
+
+```
+Content of /home/behai/rust/maths/src/lib.rs:
+```
+
+```rust
+/// Computes the nth Fibonacci number.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use maths::fibonacci;
+/// 
+/// let n: u32 = 11;
+/// let result: (bool, u32) = fibonacci(n);
+/// println!("{n}th Fibonacci number: {:?}.\n", result);
+/// 
+/// assert_eq!(true, result.0);
+/// assert_eq!(89, result.1);
+/// ```
+/// 
+/// Pre: n is defined and n > 0.
+/// 
+/// Post: Returns a ``tuple`` of two (2) elements. The first element is a ``bool``,
+/// ``true`` indicates a success, ``false`` a failure. The second element is the nth 
+/// Fibonacci number if the first element is ``true``.
+pub fn fibonacci(n: u32) -> (bool, u32) {
+    if n == 0 {
+        return (false, 0);
+    }    
+
+    if (n == 1) | (n == 2 ) {
+        (true, 1)
+    } 
+    else {
+        (true, fibonacci(n-2).1 + fibonacci(n-1).1)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fibonacci_valid() {
+        let result: (bool, u32) = fibonacci(6);
+        assert_eq!(result.0, true);
+        assert_eq!(result.1, 8);
+
+        let result: (bool, u32) = fibonacci(1);
+        assert_eq!(result.0, true);
+        assert_eq!(result.1, 1);
+
+        let result: (bool, u32) = fibonacci(2);
+        assert_eq!(result.0, true);
+        assert_eq!(result.1, 1);
+    }
+
+    #[test]
+    fn fibonacci_invalid() {
+        let result: (bool, u32) = fibonacci(0);
+        assert_eq!(result.0, false);
+    }    
+}
+```
+
+An <code>u32</code> can only have values from 0 onward, so
+the condition <code>if n == 0</code> suffices -- the compiler
+will not let us pass in a literal negative integer nor any
+type other than <code>u32</code> in place of <code>n</code>.
+
+The original Turbo Pascal implementation does not handle
+<code>N <= 0</code>; I'm handling invalid <code>n</code>,
+for simplicity, I'm using a <code>tuple</code> to return
+the function result.
+
+Rust also include formal documentation support. 
+I include a proper documentation for the function, 
+please note an example section in the documentation, 
+<code>cargo</code> does test for the validity of this example
+code. 
+
+-- In Python, we could also do this with 
+<a href="https://www.sphinx-doc.org/en/master/"
+title="Sphinx" target="_blank">Sphinx</a>.
+
+Documentation 
+lines start with <code>///</code>, and using the 
+<a href="https://www.markdownguide.org/basic-syntax/"
+title="Markdown" target="_blank">Markdown syntax</a>. I find 
+this very pleasing. I was struggling with 
+<a href="https://www.sphinx-doc.org/en/master/"
+title="Sphinx" target="_blank">Sphinx</a> before, this 
+time, I find it easy to understand.
+
+Another great Rust feature is the built in test mechanism, 
+in this implementation, I'm just using the default structure 
+that <code>cargo</code> generated. The command:
+
+```
+$ cargo test
+```
+
+runs both normal tests and also example codes included in the documentations. 
+Please see the screenshots for the output of the <code>cargo test</code> 
+command in  both Windows 10 and Ubuntu 22.10:
+
+{% include image-gallery.html list=page.gallery-image-list-1 %}
+
+The command:
+
+```
+$ cargo doc --open
+```
+
+generates the document and opens the starting page via the 
+default browser for us. Please see the following screenshots,
+where the document was displayed in both Windows 10 and 
+Ubuntu 22.10:
+
+{% include image-gallery.html list=page.gallery-image-list-2 %}
+
+The document files are on disk. But this's as far as I look at 
+it, I imagine that for proper production-ready libraries, we'll
+just upload the document files to make the documentation 
+publicly available.
+
+We don't exactly need <code>main.rs</code> for the purpose of
+this exercise, but I have it just for the shake of demonstration.
+
+```
+Content of /home/behai/rust/maths/src/main.rs:
+```
+
+```rust
+/*
+Demonstrating how to use function(s) in the maths crate.
+*/
+use maths::fibonacci;
+
+fn main() {
+    let n: u32 = 9;
+    let (result, number) = fibonacci(n);
+    println!("\n{n}th Fibonacci result: {}.", result);
+    println!("{n}th Fibonacci number: {}.\n", number);
+
+    let n: u32 = 11;
+    let result: (bool, u32) = fibonacci(n);
+    println!("{n}th Fibonacci number: {:?}.\n", result);
+
+    assert_eq!(true, result.0);
+    assert_eq!(89, result.1);
+
+    let n: u32 = 18;
+    let result: (bool, u32) = fibonacci(n);
+    println!("{n}th Fibonacci number: {:?}.\n", result);
+
+    let n: u32 = 0;
+    let result: (bool, u32) = fibonacci(n);
+    println!("{n}th Fibonacci number: {:?}.\n", result);
+
+    if result.0 {
+        println!("{n}th Fibonacci number is successful, number is {}.", result.1);
+    } 
+    else {
+        println!("Failed to calculate {n}th Fibonacci number.");
+    }    
+}
+```
+
+The <code>fn main()</code> function is Rust entry-point for
+an executable. This function just calls <code>fibonacci(u32)</code>
+with different values for <code>u32</code> and prints out results.
+
+We can run it using the <code>cargo run</code> command:
+
+```
+behai@hp-pavilion-15:~/rust/maths$ cargo run
+```
+
+```
+behai@hp-pavilion-15:~/rust/maths$ cargo run
+   Compiling maths v0.1.0 (/home/behai/rust/maths)
+    Finished dev [unoptimized + debuginfo] target(s) in 10.94s
+     Running `target/debug/maths`
+
+9th Fibonacci result: true.
+9th Fibonacci number: 34.
+
+11th Fibonacci number: (true, 89).
+
+18th Fibonacci number: (true, 2584).
+
+0th Fibonacci number: (false, 0).
+
+Failed to calculate 0th Fibonacci number.
+behai@hp-pavilion-15:~/rust/maths$
+```
+
+I hope you find this useful. Thank you for reading and stay safe as always.
+
+✿✿✿
+
+Feature image source:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.rust-lang.org/" target="_blank">https://www.rust-lang.org/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+</ul>
