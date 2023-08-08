@@ -1,0 +1,323 @@
+---
+layout: post
+title: "Rust: baby step -- Unicode with Vietnamese text."
+
+description: We're looking at some Rust Unicode functionalities using Vietnamese text as examples.
+tags:
+- Rust
+- Unicode
+- UTF8
+- ASCII
+---
+
+<em style="color:#111;">We're looking at some Rust Unicode functionalities using Vietnamese text as examples.</em>
+
+| ![077-feature-image.png](https://behainguyen.files.wordpress.com/2023/08/077-feature-image.png) |
+|:--:|
+| *Rust: baby step -- Unicode with Vietnamese text.* |
+
+<a href="https://doc.rust-lang.org/book/ch04-03-slices.html#the-slice-type"
+title="The Slice Type" target="_blank">The Slice Type</a> section of the 
+<a href="https://doc.rust-lang.org/book/" title="“the book”" target="_blank">“the book”</a>
+states:
+
+>
+> Note: String slice range indices must occur at valid UTF-8 character boundaries. If you attempt to create a string slice in the middle of a multibyte character, your program will exit with an error. For the purposes of introducing string slices, we are assuming ASCII only in this section; a more thorough discussion of UTF-8 handling is in the <a href="https://doc.rust-lang.org/book/ch08-02-strings.html#storing-utf-8-encoded-text-with-strings" title="“Storing UTF-8 Encoded Text with Strings”" target="_blank">“Storing UTF-8 Encoded Text with Strings”</a> section of Chapter 8.
+>
+
+This note is best illustrated with the following Vietnamese poem verse:
+
+```
+Content of src\example_01.rs:
+```
+
+```rust
+fn main() {
+    let vstr = String::from("Đầu bút nghiễn hề sự cung đao");
+    let slice = &vstr[0..3];
+
+    println!("string = [{}]", vstr);
+    println!("slice = [{}]", slice);
+}
+```
+
+(<em>Đầu bút nghiễn hề sự cung đao</em> means <em>The young husband puts 
+aside his pen and ink, and picks up his sword and long bow to defense his country</em>,
+from the 18th century poem <em>Chinh Phụ Ngâm</em> -- <em>The Ballad Of A Soldier's Wife</em>.)
+
+Compile and run with the following commands:
+
+```
+F:\rust\strings>rustc src\example_01.rs
+F:\rust\strings>example_01.exe
+```
+
+And as per documentation, the executable exits with an error:
+
+```
+thread 'main' panicked at 'byte index 3 is not a char boundary; it is inside 'ầ' (bytes 2..5) of `Đầu bút nghiễn hề sự cung đao`', src\example_01.rs:3:18
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+<code>Đ</code> is <code>2 (two) bytes</code>, and <code>ầ</code> 
+is <code>3 (three) bytes</code>. This explains what the above error 
+is about. 
+
+-- For me, the obvious question is, for Unicode strings, how, then, do we 
+know the correct byte index to use? We could certain iterate over the 
+characters and calculate the byte index, but that seems overly complicated 
+for such a simple task?
+
+We can use the <code>String</code>'s
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.chars" title="chars()" target="_blank">chars()</a>
+iterator to iterate over each character, and print out each character 
+code and length in bytes as follows:
+
+```
+Content of src\example_02.rs:
+```
+
+```rust
+fn main() {
+    let vstr = String::from("Đầu bút nghiễn hề sự cung đao");
+
+    for char in vstr.chars() {
+        println!("char: {}, code: {}, byte size: {}", char, char as u32, char.len_utf8());
+    }
+}
+```
+
+There're 29 (twenty nine) characters, the above executable will print out 
+29 (twenty nine) lines, one for each character.
+
+We can use the <code>String</code>'s
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.as_bytes-1" 
+title="as_bytes()" target="_blank">as_bytes()</a> 
+method to iterate over the bytes:
+
+```
+Content of src\example_03.rs:
+```
+
+```rust
+fn main() {
+    let vstr = String::from("Đầu bút nghiễn hề sự cung đao");
+
+    let bytes = vstr.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        println!("i: {}, item: {}", i, item);
+    }
+}
+```
+
+There're 40 (forty) bytes in total, the first 5 (five) bytes
+are: <code>196</code>, <code>144</code>, <code>225</code>, 
+<code>186</code> and <code>167</code> which correspond to the
+first two (2) characters <code>Đầ</code>.
+
+Following 
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8"
+title="from_utf8(...)" target="_blank">from_utf8(...)</a>, if we feed 
+the above 5 (five) bytes to this method, we'd get <code>Đầ</code>:
+
+```
+Content of src\example_04.rs:
+```
+
+```rust
+fn main() {
+    let first_two_char_bytes = vec![196, 144, 225, 186, 167];
+
+    let first_two_char = String::from_utf8(first_two_char_bytes).unwrap();
+
+    println!("{}", first_two_char);
+}
+```
+
+Letters <code>f</code>, <code>j</code>, <code>w</code> and <code>z</code> 
+are not official Vietnamese alphabets, (most Vietnamese are 
+aware of them, even if they don't know English), in addition to the
+remaining 22 (twenty two) letters, there're another 67 (sixty seven)
+additional letters, as in English, there're both upper case and 
+lower case. Some of these letters are not uniquely Vietnamese, they
+are found in other languages, following are a few of them: <code>à</code>, 
+<code>â</code>, <code>đ</code>, <code>è</code>, <code>é</code>, 
+<code>ê</code>, <code>ì</code>, <code>ò</code>, <code>ô</code> and 
+<code>ù</code>.
+
+We could have global constants for the 67 (sixty seven) letters 
+as follows:
+
+```rust
+static VIETNAMESE_UPPERCASE: &str = "ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ";
+static VIETNAMESE_LOWERCASE: &str = "áàảãạăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ";
+```
+
+They're listed based on two orders: Latin alphabets, then Vietnamese diacritic
+tonal marks, that is, the acute (e.g. <code>Á</code>, <code>Ố</code> etc.)
+tonal mark comes before any other marks.
+
+For the English alphabets, the ASCII codes are in sequence. That is, 
+the ASCII code for capital <code>A</code> is <code>65</code>, 
+<code>B</code> is <code>66</code> and so on. This is not the case for
+the “Vietnamese” letters as seen in the following table:
+
+<figure class="wp-block-table">
+    <table>
+        <tbody>
+            <tr><td colspan="3">Upper Case</td><td colspan="3">Lower Case</td></tr>
+            <tr><td>Char</td><td>Code</td><td>Byte #.</td><td>Char</td><td>Code</td><td>Byte #.</td></tr>
+            <tr><td>Á</td><td>193</td><td>2</td><td>á</td><td>225</td><td>2</td></tr>
+            <tr><td>À</td><td>192</td><td>2</td><td>à</td><td>224</td><td>2</td></tr>
+            <tr><td>Ả</td><td>7842</td><td>3</td><td>ả</td><td>7843</td><td>3</td></tr>
+            <tr><td>Ã</td><td>195</td><td>2</td><td>ã</td><td>227</td><td>2</td></tr>
+            <tr><td>Ạ</td><td>7840</td><td>3</td><td>ạ</td><td>7841</td><td>3</td></tr>
+            <tr><td>Ă</td><td>258</td><td>2</td><td>ă</td><td>259</td><td>2</td></tr>
+            <tr><td>Ắ</td><td>7854</td><td>3</td><td>ắ</td><td>7855</td><td>3</td></tr>
+            <tr><td>Ằ</td><td>7856</td><td>3</td><td>ằ</td><td>7857</td><td>3</td></tr>
+            <tr><td>Ẳ</td><td>7858</td><td>3</td><td>ẳ</td><td>7859</td><td>3</td></tr>
+            <tr><td>Ẵ</td><td>7860</td><td>3</td><td>ẵ</td><td>7861</td><td>3</td></tr>
+            <tr><td>Ặ</td><td>7862</td><td>3</td><td>ặ</td><td>7863</td><td>3</td></tr>
+            <tr><td>Â</td><td>194</td><td>2</td><td>â</td><td>226</td><td>2</td></tr>
+			<tr><td>Ấ</td><td>7844</td><td>3</td><td>ấ</td><td>7845</td><td>3</td></tr>
+			<tr><td>Ầ</td><td>7846</td><td>3</td><td>ầ</td><td>7847</td><td>3</td></tr>
+			<tr><td>Ẩ</td><td>7848</td><td>3</td><td>ẩ</td><td>7849</td><td>3</td></tr>
+			<tr><td>Ẫ</td><td>7850</td><td>3</td><td>ẫ</td><td>7851</td><td>3</td></tr>
+			<tr><td>Ậ</td><td>7852</td><td>3</td><td>ậ</td><td>7853</td><td>3</td></tr>
+			<tr><td>Đ</td><td>272</td><td>2</td><td>đ</td><td>273</td><td>2</td></tr>
+			<tr><td>É</td><td>201</td><td>2</td><td>é</td><td>233</td><td>2</td></tr>
+			<tr><td>È</td><td>200</td><td>2</td><td>è</td><td>232</td><td>2</td></tr>
+			<tr><td>Ẻ</td><td>7866</td><td>3</td><td>ẻ</td><td>7867</td><td>3</td></tr>
+			<tr><td>Ẽ</td><td>7868</td><td>3</td><td>ẽ</td><td>7869</td><td>3</td></tr>
+			<tr><td>Ẹ</td><td>7864</td><td>3</td><td>ẹ</td><td>7865</td><td>3</td></tr>
+			<tr><td>Ê</td><td>202</td><td>2</td><td>ê</td><td>234</td><td>2</td></tr>
+			<tr><td>Ế</td><td>7870</td><td>3</td><td>ế</td><td>7871</td><td>3</td></tr>
+			<tr><td>Ề</td><td>7872</td><td>3</td><td>ề</td><td>7873</td><td>3</td></tr>
+			<tr><td>Ể</td><td>7874</td><td>3</td><td>ể</td><td>7875</td><td>3</td></tr>
+			<tr><td>Ễ</td><td>7876</td><td>3</td><td>ễ</td><td>7877</td><td>3</td></tr>
+			<tr><td>Ệ</td><td>7878</td><td>3</td><td>ệ</td><td>7879</td><td>3</td></tr>
+			<tr><td>Í</td><td>205</td><td>2</td><td>í</td><td>237</td><td>2</td></tr>
+			<tr><td>Ì</td><td>204</td><td>2</td><td>ì</td><td>236</td><td>2</td></tr>
+			<tr><td>Ỉ</td><td>7880</td><td>3</td><td>ỉ</td><td>7881</td><td>3</td></tr>
+			<tr><td>Ĩ</td><td>296</td><td>2</td><td>ĩ</td><td>297</td><td>2</td></tr>
+			<tr><td>Ị</td><td>7882</td><td>3</td><td>ị</td><td>7883</td><td>3</td></tr>
+			<tr><td>Ó</td><td>211</td><td>2</td><td>ó</td><td>243</td><td>2</td></tr>
+			<tr><td>Ò</td><td>210</td><td>2</td><td>ò</td><td>242</td><td>2</td></tr>
+			<tr><td>Ỏ</td><td>7886</td><td>3</td><td>ỏ</td><td>7887</td><td>3</td></tr>
+			<tr><td>Õ</td><td>213</td><td>2</td><td>õ</td><td>245</td><td>2</td></tr>
+			<tr><td>Ọ</td><td>7884</td><td>3</td><td>ọ</td><td>7885</td><td>3</td></tr>
+			<tr><td>Ô</td><td>212</td><td>2</td><td>ô</td><td>244</td><td>2</td></tr>
+			<tr><td>Ố</td><td>7888</td><td>3</td><td>ố</td><td>7889</td><td>3</td></tr>
+			<tr><td>Ồ</td><td>7890</td><td>3</td><td>ồ</td><td>7891</td><td>3</td></tr>
+			<tr><td>Ổ</td><td>7892</td><td>3</td><td>ổ</td><td>7893</td><td>3</td></tr>
+			<tr><td>Ỗ</td><td>7894</td><td>3</td><td>ỗ</td><td>7895</td><td>3</td></tr>
+			<tr><td>Ộ</td><td>7896</td><td>3</td><td>ộ</td><td>7897</td><td>3</td></tr>
+			<tr><td>Ơ</td><td>416</td><td>2</td><td>ơ</td><td>417</td><td>2</td></tr>
+			<tr><td>Ớ</td><td>7898</td><td>3</td><td>ớ</td><td>7899</td><td>3</td></tr>
+			<tr><td>Ờ</td><td>7900</td><td>3</td><td>ờ</td><td>7901</td><td>3</td></tr>
+			<tr><td>Ở</td><td>7902</td><td>3</td><td>ở</td><td>7903</td><td>3</td></tr>
+			<tr><td>Ỡ</td><td>7904</td><td>3</td><td>ỡ</td><td>7905</td><td>3</td></tr>
+			<tr><td>Ợ</td><td>7906</td><td>3</td><td>ợ</td><td>7907</td><td>3</td></tr>
+			<tr><td>Ú</td><td>218</td><td>2</td><td>ú</td><td>250</td><td>2</td></tr>
+			<tr><td>Ù</td><td>217</td><td>2</td><td>ù</td><td>249</td><td>2</td></tr>
+			<tr><td>Ủ</td><td>7910</td><td>3</td><td>ủ</td><td>7911</td><td>3</td></tr>
+			<tr><td>Ũ</td><td>360</td><td>2</td><td>ũ</td><td>361</td><td>2</td></tr>
+			<tr><td>Ụ</td><td>7908</td><td>3</td><td>ụ</td><td>7909</td><td>3</td></tr>
+			<tr><td>Ư</td><td>431</td><td>2</td><td>ư</td><td>432</td><td>2</td></tr>
+			<tr><td>Ứ</td><td>7912</td><td>3</td><td>ứ</td><td>7913</td><td>3</td></tr>
+			<tr><td>Ừ</td><td>7914</td><td>3</td><td>ừ</td><td>7915</td><td>3</td></tr>
+			<tr><td>Ử</td><td>7916</td><td>3</td><td>ử</td><td>7917</td><td>3</td></tr>
+			<tr><td>Ữ</td><td>7918</td><td>3</td><td>ữ</td><td>7919</td><td>3</td></tr>
+			<tr><td>Ự</td><td>7920</td><td>3</td><td>ự</td><td>7921</td><td>3</td></tr>
+			<tr><td>Ý</td><td>221</td><td>2</td><td>ý</td><td>253</td><td>2</td></tr>
+			<tr><td>Ỳ</td><td>7922</td><td>3</td><td>ỳ</td><td>7923</td><td>3</td></tr>
+			<tr><td>Ỷ</td><td>7926</td><td>3</td><td>ỷ</td><td>7927</td><td>3</td></tr>
+			<tr><td>Ỹ</td><td>7928</td><td>3</td><td>ỹ</td><td>7929</td><td>3</td></tr>
+			<tr><td>Ỵ</td><td>7924</td><td>3</td><td>ỵ</td><td>7925</td><td>3</td></tr>
+        </tbody>
+    </table>
+	<figcaption class="wp-element-caption">
+        Vietnamese specific alphabets: character codes and byte sizes.
+    </figcaption>
+</figure>
+
+I think because the extended ASCII table already includes a few, and so 
+the Unicode Consortium just allocates new codes for the missing ones.
+
+(Back in the 1990s, to display Vietnamese, some of the not often used 
+displayable extended ASCII characters were redrawn to look like Vietnamese 
+letters, and the keyboard was programmed to match. For example, the earliest
+convention is <code>VNI</code>, originated from the United States, whereby
+<code>u</code> followed by <code>?</code> produces <code>ủ</code> which 
+replaces <code>u</code>. This convention is still in used today, but with
+Unicode.)
+
+Rust provides several methods for case conversions: 
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.to_lowercase"
+title="to_lowercase(...)" target="_blank">to_lowercase(...)</a>,
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.to_uppercase"
+title="to_uppercase(...)" target="_blank">to_uppercase(...)</a>,
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.to_ascii_lowercase"
+title="to_ascii_lowercase(...)" target="_blank">to_ascii_lowercase(...)</a>,
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.to_ascii_uppercase"
+title="to_ascii_uppercase(...)" target="_blank">to_ascii_uppercase(...)</a>,
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.make_ascii_lowercase"
+title="make_ascii_lowercase(...)" target="_blank">make_ascii_lowercase(...)</a> and 
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.make_ascii_uppercase"
+title="make_ascii_uppercase(...)" target="_blank">make_ascii_uppercase(...)</a>.
+
+The first two methods work with Unicode strings:
+
+```
+Content of src\example_05.rs:
+```
+
+```rust
+static VIETNAMESE_UPPERCASE: &str = "ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ";
+static VIETNAMESE_LOWERCASE: &str = "áàảãạăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ";
+
+fn main() {
+    let s = String::from(VIETNAMESE_UPPERCASE.to_lowercase());
+    assert_eq!(s, VIETNAMESE_LOWERCASE);
+
+    // Does not work.
+    let s = String::from(VIETNAMESE_UPPERCASE.to_ascii_lowercase());
+    assert_eq!(s, VIETNAMESE_UPPERCASE);
+
+    // Does not work.
+    let mut s = String::from(VIETNAMESE_LOWERCASE);
+    s.make_ascii_uppercase();
+    assert_eq!(s, VIETNAMESE_LOWERCASE);
+}
+```
+
+I'm guessing that when we're certain we only work with ASCII strings, 
+it's better to call ASCII-based methods?
+
+I'm not sure how relevant this post is to other people, I tried to 
+understand this character versus byte issue in Rust, and these're
+the example codes which I've written to understand the issue, I document
+it so that I have a reference to go back to should the need arise.
+
+I hope you find this post relevant somehow... Thank you for reading
+and stay safe as always.
+
+✿✿✿
+
+Feature image source:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.rust-lang.org/" target="_blank">https://www.rust-lang.org/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+</ul>
