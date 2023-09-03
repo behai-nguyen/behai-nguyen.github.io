@@ -1,0 +1,194 @@
+---
+layout: post
+title: "Rust: baby step -- some preliminary look at date."
+
+description: Trying to understand how date works in Rust. Specifically how to get the current local date, and how to manually display a date in a particular format. In the process, we'll touch on two different external date, time crates&#58; time and chrono. We'll also look at how to enable crates' features which are disabled by default.
+
+tags:
+- Rust
+- date 
+- crate
+- time
+- chrono
+---
+
+<em style="color:#111;">Trying to understand how date works in Rust. Specifically how to get the current local date, and how to manually display a date in a particular format. In the process, we'll touch on two different external date, time crates: <code>time</code> and <code>chrono</code>. We'll also look at how to enable crates' features which are disabled by default.</em>
+
+| ![080-feature-image.png](https://behainguyen.files.wordpress.com/2023/09/080-feature-image.png) |
+|:--:|
+| *Rust: baby step -- some preliminary look at date.* |
+
+As of the time of writing this post, the 2nd of September, 2023, my Rust “experience” is about 40 (forty) days, and less than 8 (eight) hours a day 😂. This post is intended as a recording of problems which I've come across rather than anything else.
+
+<a href="https://doc.rust-lang.org/book/" title="“the book”" target="_blank">“The book”</a> does not discuss date, time. However, after finishing it, I was under the impression that date, time in Rust is fully the responsibilities of the standard library. Date, time are a complicated business. Coming to any new language, I'm sure we all set aside sometimes to study how date, time work. My first attempt is to get the current local date, and display it in the Australian format, i.e.: <code>dd/mm/yyyy</code>. E.g.: <code>02/09/2023</code>.
+
+<p>
+I expected it to be straight forward like other languages
+which I'm used to. But it is not... After some searching, it
+seems that there're at least one (1) module and two (2) different 
+crates which deal with date, time:
+</p>
+
+<ol>
+<li style="margin-top:10px;">
+<a href="https://doc.rust-lang.org/std/time/index.html" title="Module std::time" target="_blank">Module std::time</a> -- it's part of the standard library. It seems that this module provides system time functionalities, which we can use for tasks such as measuring performance and etc.
+</li>
+<li style="margin-top:10px;">
+<a href="https://docs.rs/time/latest/time/" title="Crate time" target="_blank">Crate time</a> -- appears to be an external crate, to use it we need to add it to the <code>[dependencies]</code> section of the <code>Cargo.toml</code> file.
+</li>
+<li style="margin-top:10px;">
+<a href="https://docs.rs/chrono/latest/chrono/" title="Crate chrono" target="_blank">Crate chrono</a> -- is also an external crate.
+</li>
+</ol>
+
+The above two (2) crates come up as the first results in the searches that I did. It would seem that <code>chrono</code> is also one of the popular, most used one. Presently, I don't know which one is <em>the one</em> to use -- it does not make sense to use both in a single application?
+
+Please note, example codes in this post have been tested on both Windows 10 and Ubuntu 22.10. For simplicity, I do not do proper error handling, the codes are simple, they should always run successfully anyway.
+
+First, I started looking at date formatting, eventually, I was pointed to <a href="https://docs.rs/time/latest/time/" title="Crate time" target="_blank">crate time</a>'s <a href="https://docs.rs/time/latest/time/struct.Date.html#method.parse" title="parse(...) method" target="_blank">parse(...) method</a> -- note the line:
+
+> 
+> Available on <strong>crate feature</strong> <code><strong>parsing</strong></code> only.
+> 
+
+And the example given:
+
+```rust
+let format = format_description!("[year]-[month]-[day]");
+assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020 - 01 - 02));
+```
+
+This example uses two (2) macros: <a href="https://docs.rs/time/latest/time/macros/macro.format_description.html" title="Macro time::macros::format_description" target="_blank">time::macros::format_description</a> and <a href="https://docs.rs/time/latest/time/macros/macro.date.html" title="Macro time::macros::date" target="_blank">time::macros::date</a>. On <a href="https://docs.rs/time/latest/time/macros/macro.format_description.html" title="Macro time::macros::format_description" target="_blank">macro time::macros::format_description</a>'s documentation, I find the following statement a bit confusing:
+
+> 
+> Available on <strong>crate feature</strong> <code><strong>macros</strong></code> and (<strong>crate features</strong> <code><strong>formatting</strong></code> or <code><strong>parsing</strong></code>) only.
+> 
+
+This statement seems to suggest that if we only want to use the <a href="https://docs.rs/time/latest/time/struct.Date.html#method.parse" title="parse(...) method" target="_blank">parse(...) method</a> and <a href="https://docs.rs/time/latest/time/macros/macro.format_description.html" title="Macro time::macros::format_description" target="_blank">time::macros::format_description</a>, the crate feature <code><strong>parsing</strong></code> alone would suffice? But that is not the case, the crate feature <code><strong>macros</strong></code> is also required.
+
+And in the <a href="https://docs.rs/time/latest/time/#feature-flags" title="Feature flags" target="_blank">Feature flags</a> section of <a href="https://docs.rs/time/latest/time/" title="Crate time" target="_blank">crate time</a>:
+
+> 
+> This crate exposes a number of features. These can be enabled or disabled as shown <a href="https://doc.rust-lang.org/cargo/reference/features.html" title="in Cargo’s documentation" target="_blank">in Cargo’s documentation</a>. Features are <em>disabled</em> by default unless otherwise noted.
+> 
+
+What that means is, to use this <a href="https://docs.rs/time/latest/time/" title="Crate time" target="_blank">time crate</a>'s above functionalities, we need to include it in the <code>Cargo.toml</code> file as follows:
+
+```toml
+...
+[dependencies]
+time = { version = "0.3.22", default-features = false, features = ["parsing", "macros"] }
+```
+
+And below is the complete working version of the above example.
+
+```
+Content of src/main.rs:
+```
+
+```rust
+use time::error::Parse;
+use time::Date;
+use time::macros::{date, format_description};
+
+fn main() -> Result<(), Parse> {
+    let format = format_description!("[year]-[month]-[day]");
+    assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020 - 01 - 02));
+
+    Ok(())
+}
+```
+
+To format dates, we can use the <a href="https://docs.rs/time/latest/time/struct.Date.html#method.format" title="format(...) method" target="_blank">format(...) method</a>, which in turn requires the <code>formatting</code> crate feature. The <code>Cargo.toml</code> file gets updated as follows:
+
+```toml
+...
+[dependencies]
+time = { version = "0.3.22", default-features = false, features = ["formatting", "macros", "parsing"] }
+```
+
+And following is the format example I've come up with:
+
+```rust
+use time::macros::{date, format_description};
+
+fn main() {
+    let format = format_description!("[day]/[month]/[year]");
+
+    let str = date!(2020 - 01 - 02).format(&format).unwrap();
+
+    println!("[day]/[month]/[year] 2020 - 01 - 02: {}", str);
+}
+```
+
+Next, to get the current local date. We need <a href="https://docs.rs/time/latest/time/struct.OffsetDateTime.html" title="Struct time::OffsetDateTime" target="_blank">struct time::OffsetDateTime</a>'s <a href="https://docs.rs/time/latest/time/struct.OffsetDateTime.html#method.now_local" title="now_local() method" target="_blank">now_local() method</a>, and this requires crate feature <code>local-offset</code> enabled:
+
+```toml
+...
+[dependencies]
+time = { version = "0.3.22", default-features = false, features = ["formatting", "macros", "parsing", "local-offset"] }
+```
+
+And below is my learning example:
+
+```rust
+use time::OffsetDateTime;
+use time::macros::format_description;
+
+fn main() {
+    assert!(OffsetDateTime::now_local().is_ok());
+
+    println!("{:#?}", OffsetDateTime::now_local());
+
+    let format = format_description!("[day]/[month]/[year]");
+
+    let str = OffsetDateTime::now_local().unwrap().date().format(&format).unwrap();
+
+    println!("[day]/[month]/[year]: {}", str);
+}
+```
+
+<a href="https://docs.rs/chrono/latest/chrono/" title="Crate chrono" target="_blank">Crate chrono</a> seems to be a bit simpler, to get the current local date and display it in the Australian format, we don't have to enable any crate features. Just include the crate:
+
+```toml
+...
+[dependencies]
+chrono = "0.4.27"
+```
+
+And below is my learning example code:
+
+```rust
+use chrono::offset::Local;
+
+fn main() {
+    let date_time = Local::now();
+    
+    let str = format!("{}", date_time.format("%d/%m/%Y"));
+
+    println!("%d/%m/%Y: {}", str);
+}
+```
+
+This is my first step looking at date in Rust. I've run a lot of the example code from the two crates' documentations, too. Presently, I still don't have a clear understanding of the relationship between <a href="https://docs.rs/time/latest/time/" title="Crate time" target="_blank">crate time</a> and <a href="https://docs.rs/chrono/latest/chrono/" title="Crate chrono" target="_blank">crate chrono</a> -- or even if there's a relationship at all? Both seem to be comprehensive. I don't know when to use which, or just one is enough... I'm guessing, these questions will have their own answers as we go along the Rust journey.
+
+I'm happy with what I've learned in the process of writing this post. Thank you for reading... I do hope this post would help people who're new to Rust like myself. Stay safe as always.
+
+✿✿✿
+
+Feature image source:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.rust-lang.org/" target="_blank">https://www.rust-lang.org/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+</ul>
