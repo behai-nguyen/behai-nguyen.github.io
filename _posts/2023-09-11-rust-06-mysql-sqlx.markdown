@@ -81,7 +81,7 @@ use sqlx::{Pool, MySql, Error, MySqlPool};
 
 use async_std::task;
 
-async fn connect() -> Result&lt;Pool&lt;MySql>, Error> {
+async fn connect() -> Result<Pool<MySql>, Error> {
     return MySqlPool::connect("mysql://root:pcb.2176310315865259@localhost:3306/employees").await;
 }
 
@@ -134,7 +134,7 @@ struct Employee {
     hire_date: Date,
 }
 
-async fn connect() -> Result&lt;Pool&lt;MySql>, Error> {
+async fn connect() -> Result<Pool<MySql>, Error> {
     return MySqlPool::connect("mysql://root:pcb.2176310315865259@localhost:3306/employees").await;
 }
 
@@ -147,7 +147,7 @@ async fn do_run_query() {
         }        
 
         Ok(pool) => {
-            let query_result = sqlx::query_as::&lt;_, Employee>("select * from employees where emp_no &lt;= 10010")
+            let query_result = sqlx::query_as::<_, Employee>("select * from employees where emp_no <= 10010")
                 .fetch_all(&pool).await.unwrap();
 
             println!("Number of Employees selected: {}", query_result.len());
@@ -233,7 +233,7 @@ use time::macros::format_description;
 
 use async_std::task;
 
-async fn connect() -> Result&lt;Pool&lt;MySql>, Error> {
+async fn connect() -> Result<Pool<MySql>, Error> {
     return MySqlPool::connect("mysql://root:pcb.2176310315865259@localhost:3306/employees").await;
 }
 
@@ -311,7 +311,7 @@ struct Employee {
     hire_date: Date,
 }
 
-async fn connect() -> Result&lt;Pool&lt;MySql>, Error> {
+async fn connect() -> Result<Pool<MySql>, Error> {
     return MySqlPool::connect("mysql://root:pcb.2176310315865259@localhost:3306/employees").await;
 }
 
