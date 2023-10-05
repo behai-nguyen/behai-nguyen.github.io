@@ -97,7 +97,7 @@ mod my_date_format {
     use time::macros::format_description;
     use serde::{self, Serializer};
 
-    pub fn serialize&lt;S>(
+    pub fn serialize<S>(
         date: &Date,
         serializer: S,
     ) -> Result<S::Ok, S::Error>
@@ -110,7 +110,7 @@ mod my_date_format {
     }    
 }
 
-async fn connect() -> Result&lt;Pool&lt;MySql>, Error> {
+async fn connect() -> Result<Pool<MySql>, Error> {
     return MySqlPool::connect("mysql://root:pcb.2176310315865259@localhost:3306/employees").await;
 }
 
