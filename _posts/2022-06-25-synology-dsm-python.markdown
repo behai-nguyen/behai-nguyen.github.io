@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Synology DS218: preparing Python 3.9 Beta compelete devepment environment."
+title: "Synology DS218: preparing Python 3.9 Beta compelete development environment."
 
 ---
 
