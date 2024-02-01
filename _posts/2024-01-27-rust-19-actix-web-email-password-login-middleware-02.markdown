@@ -328,7 +328,7 @@ request authentication</code></a> process is based on the
 <a href="https://github.com/actix/examples/blob/master/middleware/various/src/redirect.rs"
 title="the official redirect example" target="_blank">official redirect example</a>.
 We rename it to 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_middleware.rs" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_middleware.rs" 
 title="src/auth_middleware.rs" target="_blank">src/auth_middleware.rs</a>.
 
 ❸ We implement two additional authentication-related routes: <code>/ui/home</code> 
@@ -382,7 +382,7 @@ In the section
 of the 
 <a href="https://behainguyen.wordpress.com/2024/01/14/rust-actix-web-endpoints-which-accept-both-application-x-www-form-urlencoded-and-application-json-content-types/" title="Rust: actix-web endpoints which accept both application/x-www-form-urlencoded and application/json content types." target="_blank">fifth</a>
 post, in the 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/migrations/mysql/migrations/20231128234321_emp_email_pwd.up.sql#L20" title="migration script" target="_blank">migration script</a>,
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/migrations/mysql/migrations/20231128234321_emp_email_pwd.up.sql#L20" title="migration script" target="_blank">migration script</a>,
 we hard-coded the string <code>$argon2id$v=19$m=16,t=2,p=1$cTJhazRqRWRHR3NYbEJ2Zg$z7pMnKzV0eU5eJkdq+hycQ</code> 
 for all passwords. It is the hashed version of <code>password</code>.
 
@@ -410,7 +410,7 @@ However, since we're only testing the application with <code>HTTP</code> (not
 
 Since this is only a learning application, we'll make all cookies 
 <strong>non-secured</strong>. Module 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/lib.rs#L70" title="src/lib.rs" target="_blank">src/lib.rs</a> 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/lib.rs#L70" title="src/lib.rs" target="_blank">src/lib.rs</a> 
 gets updated as follows:
 
 ```rust
@@ -451,7 +451,7 @@ the second and final independent request. Hence, <strong><em>per-request</em></s
 pertains to the original request.
 
 We implement a helper function to create these cookies in the module 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/app_utils.rs#L18" title="src/helper/app_utils.rs" target="_blank">src/helper/app_utils.rs</a>: 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/helper/app_utils.rs#L18" title="src/helper/app_utils.rs" target="_blank">src/helper/app_utils.rs</a>: 
 
 ```rust
 pub fn build_cookie<'a>(
@@ -487,7 +487,7 @@ also maintains an application-wide publicly available cookie named
 after a successful login.
 
 To recap, the application maintains three cookies. In the module 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/app_utils.rs" title="src/helper/app_utils.rs" target="_blank">src/helper/app_utils.rs</a>, 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/helper/app_utils.rs" title="src/helper/app_utils.rs" target="_blank">src/helper/app_utils.rs</a>, 
 we also implement three pairs of helper methods, 
 <code>build_xxx_cookie(...)</code> and <code>remove_xxx_cookie(...)</code>, 
 to help manage the lifetime of these cookies.
@@ -501,13 +501,13 @@ All HTTP responses -- successful and failure, HTML and JSON --
 have their HTTP response status code set to an appropriate 
 code. In addition, if a response is in JSON format, the
 field 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/bh_libs/api_status.rs#L20"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/bh_libs/api_status.rs#L20"
 title="ApiStatus.code" target="_blank"><code>ApiStatus.code</code></a> 
 also has its value sets to the value of the HTTP response status 
 code.
 
 -- We've introduced 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/bh_libs/api_status.rs#L20"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/bh_libs/api_status.rs#L20"
 title="ApiStatus" target="_blank"><code>ApiStatus</code></a> in the 
 <a href="https://behainguyen.wordpress.com/2024/01/14/rust-actix-web-endpoints-which-accept-both-application-x-www-form-urlencoded-and-application-json-content-types/" title="Rust: actix-web endpoints which accept both application/x-www-form-urlencoded and application/json content types." target="_blank">fifth</a>
 post. Basically, it's a generic API status response that gets 
@@ -541,7 +541,7 @@ Eventually, I realised that login should be handled by an endpoint handler funct
 by the middleware. In this context, the middleware is much like a Python decorator.
 
 The email-password login process exclusively occurs in module  
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs"
 title="src/auth_handlers.rs" target="_blank">src/auth_handlers.rs</a>.
 In broad terms, this process involves two routes <code>/api/login</code> and <code>/ui/login</code>.
 
@@ -551,7 +551,7 @@ In broad terms, this process involves two routes <code>/api/login</code> and <co
 </p>
 
 The login process handler is 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L284"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L284"
 title="The login process handler"
 target="_blank"><code>pub async fn login(request: HttpRequest, app_state: web::Data&lt;super::AppState>, <br/>body: Bytes) -> Either&lt;impl Responder, HttpResponse></code></a>.
 It works as follows:
@@ -560,21 +560,21 @@ It works as follows:
 ⓵ Attempt to extract the submitted log in information, a step discussed the 
 <a href="https://behainguyen.wordpress.com/2024/01/14/rust-actix-web-endpoints-which-accept-both-application-x-www-form-urlencoded-and-application-json-content-types/" title="Rust: actix-web endpoints which accept both application/x-www-form-urlencoded and application/json content types." target="_blank">fifth</a> 
 post above. If the extraction fails, it <strong>always returns a JSON response</strong>
-of <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/bh_libs/api_status.rs#L20"
+of <a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/bh_libs/api_status.rs#L20"
 title="ApiStatus" target="_blank"><code>ApiStatus</code></a> with a <code>code</code>
 of <code>400</code> for <code>BAD REQUEST</code>. And that's the end of the request. 
 
 <a id="the-login-process-api-login-step-two"></a>
 ⓶ Next, we use the submitted email to retrieve the target employee
 from the database. If there is no match, we call the helper function 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L63"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L63"
 title="Login error, no match on employee email"
 target="_blank"><code>fn first_stage_login_error_response(request: &HttpRequest, message: &str) -> HttpResponse</code></a>
 to handle the failure: 
 
 ● If the request content type is <code>application/json</code>, 
 we return a JSON response of 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/bh_libs/api_status.rs#L20"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/bh_libs/api_status.rs#L20"
 title="ApiStatus" target="_blank"><code>ApiStatus</code></a> with a <code>code</code>
 of <code>401</code> for <code>UNAUTHORIZED</code>. The value for the 
 <code>message</code> field is set to the value of the parameter <code>message</code>.
@@ -604,7 +604,7 @@ we'll cover the <code>/ui/login</code> handler.
 ⓷ An employee's been found using an exact email match. The next step is to compare password. 
 
 The function 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L97"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L97"
 title="Login process, attempt to match password"
 target="_blank"><code>fn match_password_response(request: &HttpRequest, <br/>submitted_login: &EmployeeLogin, selected_login: &EmployeeLogin) -> Result&lt;(), HttpResponse></code></a>
 handles password comparison. It uses the 
@@ -615,7 +615,7 @@ We've briefly discussed this process in the section <a href="#hard-coded-employe
 ● If the passwords don't match, similar to 
 <a href="#the-login-process-api-login-step-two">step ⓶ above</a>, 
 we call the function 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L63"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L63"
 title="Login error, no match on employee email"
 target="_blank"><code>fn first_stage_login_error_response(request: &HttpRequest, message: &str) -> HttpResponse</code></a> 
 to return an appropriate HTTP response.
@@ -624,7 +624,7 @@ to return an appropriate HTTP response.
 
 <a id="the-login-process-api-login-step-four"></a>
 ⓸ Email-password login has been successful. Now, we're back in the endpoint 
-handler for <code>/api/login</code>, <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L402"
+handler for <code>/api/login</code>, <a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L402"
 title="The login process handler" target="_blank"><code>pub async fn login(request: HttpRequest, app_state: web::Data&lt;super::AppState>, <br/>body: Bytes) -> Either&lt;impl Responder, HttpResponse></code></a>.
 
 ```rust
@@ -706,14 +706,14 @@ we return the HTML home page as is.
 
 ● If the content type is <code>application/json</code>,
 we return a JSON serialisation of 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/models.rs#L61"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/models.rs#L61"
 title="Login success, JSON response" target="_blank"><code>LoginSuccessResponse</code></a>.
 
 <a id="the-login-page-ui-login"></a>
 ❷ The login page, <code>/ui/login</code> handler.
 
 The login page handler is 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L135"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L135"
 title="The login page handler"
 target="_blank"><code>pub async fn login_page(request: HttpRequest) -> Either&lt;impl Responder, HttpResponse></code></a>.
 
@@ -738,13 +738,13 @@ In this scenario, the request content type is available throughout the call stac
 
 <a id="the-login-page-ui-login-redirected-by-middleware"></a>
 ⓷ Redirected to by 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_middleware.rs" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_middleware.rs" 
 title="src/auth_middleware.rs" target="_blank">src/auth_middleware.rs</a>. This
 middleware is discussed in its own section titled 
 <a href="#request-authentication-works">How the Request Authentication Process Works</a>.
 
 At this point, we need to understand that, within the middleware, the closure 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_middleware.rs#L208" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_middleware.rs#L208" 
 title="src/auth_middleware.rs" target="_blank"><code>redirect_to_route = |req: ServiceRequest, route: &str| -> Self::Future</code></a>:
 
 <ul>
@@ -756,14 +756,14 @@ cookie, with its value being the original request content type.
 If it redirects to <code>/ui/login</code>, then creates the 
 <em>server-side per-request</em> <code>redirect-message</code> 
 cookie with a value set to the constant 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/messages.rs#L8" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/helper/messages.rs#L8" 
 title="Message constant UNAUTHORISED_ACCESS_MSG" target="_blank"><code>UNAUTHORISED_ACCESS_MSG</code></a>.
 </li>
 </ul>
 
 <a id="the-login-page-handler"></a>
 ⓸ Back to the login page handler
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L236"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L236"
 title="The login page handler"
 target="_blank"><code>pub async fn login_page(request: HttpRequest) -> Either&lt;impl Responder, HttpResponse></code></a>:
 
@@ -812,7 +812,7 @@ cookies. Note on the following code:
 ```
 
 We implement 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/app_utils.rs#L260" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/helper/app_utils.rs#L260" 
 title="Implement Responder for ApiStatus" target="_blank">
 <code>Responder trait</code> for <code>ApiStatus</code></a> as described in the
 <a href="https://actix.rs/docs/handlers#response-with-custom-type" title="Response with custom type" target="_blank">Response with custom type</a>
@@ -860,9 +860,9 @@ and potential future routes are protected by this middleware.
 A pair of helper functions discribed below is responsible for managing the 
 <a href="#definition-request-auth"><code>request authentication</code></a> process.
 
-<a id="request-authentication-works-extract-access-token">
+<a id="request-authentication-works-extract-access-token"></a>
 The helper function 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_middleware.rs#L57" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_middleware.rs#L57" 
 title="Helper function to extract access token" target="_blank"><code>fn extract_access_token(request: &ServiceRequest) -> Option&lt;String></code></a> 
 looks for the <a href="#definition-access-token"><code>access token</code></a> in:
 
@@ -883,7 +883,7 @@ Note: we could also look in the <code>authorization</code> cookie, but this code
 </ul>
 
 Function 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_middleware.rs#L113" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_middleware.rs#L113" 
 title="Helper function to verify access token" target="_blank"><code>fn verify_valid_access_token(request: &ServiceRequest) -> bool</code></a>
 is a work in progress. It calls the <code>extract_access_token(...)</code> 
 function to extract the <a href="#definition-access-token"><code>access token</code></a>. 
@@ -896,7 +896,7 @@ and it has a non-zero length, the
 As mentioned previously</a>, this will be refactored later on.
 
 The next essential piece of functionality is the closure 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_middleware.rs#L208" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_middleware.rs#L208" 
 title="src/auth_middleware.rs" target="_blank"><code>redirect_to_route = |req: ServiceRequest, route: &str| -> Self::Future</code></a>,
 which must be <a href="#the-login-page-ui-login-redirected-by-middleware">
 described in an earlier section</a>.
@@ -905,7 +905,7 @@ described in an earlier section</a>.
 this closure also creates the <em>server-side per-request</em> 
 <code>original-content-type</code> cookie. This cookie is so obscured. 
 To help addressing the obscurities, 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/app_utils.rs#L154" 
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/helper/app_utils.rs#L154" 
 title="Helper method which creates original-content-type cookie" 
 target="_blank">the helper method</a> that creates this cookie comes
 with extensive documentation explaining all scenarios where this cookie is
@@ -917,12 +917,12 @@ required.
 </h3>
 
 ❶ The home page handler 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L437"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L437"
 title="The home page handler" target="_blank"><code>pub async fn home_page(request: 
 HttpRequest) -> impl Responder</code></a> is simple; it just delivers the HTML home page as is.
 
 The 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/templates/auth/home.html"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/templates/auth/home.html"
 title="The home page HTML" target="_blank"><code>home page HTML</code></a>
 itself is also simple,  
 without any CSS. It features a Logout button and other buttons 
@@ -936,7 +936,7 @@ runAjaxEx(...)" target="_blank">on GitHub</a>. It makes references to some
 CSS classes</a>, but that should not be a problem for this example.
 
 ❷ There is also not much in the logout process handler, 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L461"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L461"
 title="The logout process handler"
 target="_blank"><code>async fn logout(request: HttpRequest, user: Identity) -> impl Responder</code></a>.
 
@@ -999,7 +999,7 @@ in the 59-page sample extract of his book
 title="ZERO TO PRODUCTION IN RUST by Luca Palmieri"
 target="_blank">ZERO TO PRODUCTION IN RUST</a>.
 Continuing with this approach, we'll define a simple <code>TestApp</code> in 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/tests/common.rs#L15"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/tests/common.rs#L15"
 title="tests/common.rs" target="_blank">tests/common.rs</a>:
 
 ```rust
@@ -1042,7 +1042,7 @@ title="The cookie_store(...) method" target="_blank">cookie_store(true)</a>:
 ❸ Existing tests.
 
 All existing tests in 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/tests/test_handlers.rs"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/tests/test_handlers.rs"
 title="tests/test_handlers.rs" target="_blank">tests/test_handlers.rs</a> 
 must be updated as outlined above, for example:
 
@@ -1078,14 +1078,14 @@ async fn get_helloemployee_has_data() {
 ❹ New tests.
 
 ⓵ We have a new test module, 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/tests/test_auth_handlers.rs"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/tests/test_auth_handlers.rs"
 title="tests/test_auth_handlers.rs" target="_blank">tests/test_auth_handlers.rs</a>,
 exclusively for testing the newly added authentication routes. There are a total of 
 eleven tests, with eight dedicated to login and six focused on accessing 
 existing protected routes without the <code>authorization</code> header set.
 
 ⓶ In the existing test module, 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/tests/test_handlers.rs"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/tests/test_handlers.rs"
 title="tests/test_handlers.rs" target="_blank">tests/test_handlers.rs</a>, we've added 
 six more tests. These tests focused on accessing existing protected routes without 
 the <code>authorization</code> header set. These test functions ended with 
@@ -1184,7 +1184,7 @@ cookie.
 ❶ <code>println!</code> should be replaced with proper logging. I plan to implement logging to files later on.
 
 ❷ The 
-<a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs#L63"
+<a href="https://github.com/behai-nguyen/rust_web_01/blob/86d2a4d902c5b8f585cea9407720dcc93fcf6a51/src/auth_handlers.rs#L63"
 title="Login error, no match on employee email"
 target="_blank"><code>fn first_stage_login_error_response(request: &HttpRequest, message: &str) -> HttpResponse</code></a> 
 helper function, 
