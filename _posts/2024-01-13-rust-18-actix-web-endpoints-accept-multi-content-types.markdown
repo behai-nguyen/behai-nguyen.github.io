@@ -114,7 +114,7 @@ While inside the new directory <code>migrations/mysql/</code>, see <a href="#new
 ▶️<code>Ubuntu 22.10:</code> $ sqlx migrate add -r emp_email_pwd
 ```
 
-Populate the two script files with what we would like to do. Please see their contents <a href="https://github.com/behai-nguyen/rust_web_01/tree/main/migrations/mysql/migrations" title="on GitHub" target="_blank">on GitHub</a>. To apply, run the below command, it'll take a little while to complete:
+Populate the two script files with what we would like to do. Please see their contents <a href="https://github.com/behai-nguyen/rust_web_01/tree/6082e2df7f4f073c001f1707ebd418a33a08a6b3main/migrations/mysql/migrations" title="on GitHub" target="_blank">on GitHub</a>. To apply, run the below command, it'll take a little while to complete:
 
 ```
 ▶️<code>Windows 10:</code> sqlx migrate add -r emp_email_pwd
@@ -122,11 +122,11 @@ Populate the two script files with what we would like to do. Please see their co
 ```
 
 <a id="step-three-update-models"></a>
-❸ Update <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/models.rs" title="updated src/models.rs" target="_blank"><code>src/models.rs</code></a> to manage new fields <code>employees.email</code> and <code>employees.password</code>.
+❸ Update <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/models.rs" title="updated src/models.rs" target="_blank"><code>src/models.rs</code></a> to manage new fields <code>employees.email</code> and <code>employees.password</code>.
 
 If we run <code>cargo test</code> now, all integration tests should fail. All integration tests eventually call to <code>get_employees(...)</code>, which does a <code>select * from employees...</code>. Since the two new fields've been added to a specific order, field indexes in <code>get_employees(...)</code> are out of order.
 
-Module <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/models.rs" title="updated src/models.rs" target="_blank"><code>src/models.rs</code></a> gets the following updates:
+Module <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/models.rs" title="updated src/models.rs" target="_blank"><code>src/models.rs</code></a> gets the following updates:
 
 <ol>
 <li style="margin-top:10px;"><code>pub email: String</code> field added to <code>struct Employee</code>.</li>
@@ -137,10 +137,10 @@ Module <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/models
 <li style="margin-top:10px;">Add <code>"email": "siamak.bernardeschi.67115@gmail.com"</code> to existing tests.</li>
 </ol>
 
-Please see the <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/models.rs" title="updated src/models.rs" target="_blank">updated <code>src/models.rs</code></a> on GitHub. The documentation should be sufficient to help reading the code.
+Please see the <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/models.rs" title="updated src/models.rs" target="_blank">updated <code>src/models.rs</code></a> on GitHub. The documentation should be sufficient to help reading the code.
 
 <a id="step-four-login-routes"></a>
-❹ New module <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs" title="src/auth_handlers.rs" target="_blank"><code>src/auth_handlers.rs</code></a>, where new login routes <code>/ui/login</code> and <code>/api/login</code> are implemented.
+❹ New module <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/auth_handlers.rs" title="src/auth_handlers.rs" target="_blank"><code>src/auth_handlers.rs</code></a>, where new login routes <code>/ui/login</code> and <code>/api/login</code> are implemented.
 
 ● <code>http://0.0.0.0:5000/ui/login</code> is a <code>GET</code> route, which just returns the <code>login.html</code> page as HTML.
 
@@ -159,7 +159,7 @@ Examples of valid submitted data for each content type:
 ✔️ Content type: <code>application/json</code>; data: <code>{"email": "chirstian.koblick.10004@gmail.com", "password": "password"}</code>.
 
 <div style="background-color:rgb(209, 209, 209);padding:10px;">
-Content of <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/auth_handlers.rs" 
+Content of <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/auth_handlers.rs" 
 title="src/auth_handlers.rs" target="_blank">src/auth_handlers.rs</a>
 </div>
 
@@ -186,10 +186,10 @@ pub async fn login(
 
 Note the second parameter <code>body</code>, which is <a href="https://docs.rs/actix-web/4.4.1/actix_web/web/struct.Bytes.html" title="actix_web::web::Bytes" target="_blank">actix_web::web::Bytes</a>, this is the byte stream presentation of the request body. 
 
-As an extractor, <a href="https://docs.rs/actix-web/4.4.1/actix_web/web/struct.Bytes.html" title="actix_web::web::Bytes" target="_blank">actix_web::web::Bytes</a> has been mentioned in section <a href="https://actix.rs/docs/extractors#other" title="Other" target="_blank">Type-safe information extraction | Other</a>. We're providing our own implementation to do the deserialisation, method <code>extract_employee_login(...)</code> in new module <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/endpoint.rs" title="src/helper/endpoint.rs" target="_blank"><code>src/helper/endpoint.rs</code></a>.
+As an extractor, <a href="https://docs.rs/actix-web/4.4.1/actix_web/web/struct.Bytes.html" title="actix_web::web::Bytes" target="_blank">actix_web::web::Bytes</a> has been mentioned in section <a href="https://actix.rs/docs/extractors#other" title="Other" target="_blank">Type-safe information extraction | Other</a>. We're providing our own implementation to do the deserialisation, method <code>extract_employee_login(...)</code> in new module <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/helper/endpoint.rs" title="src/helper/endpoint.rs" target="_blank"><code>src/helper/endpoint.rs</code></a>.
 
 <div style="background-color:rgb(209, 209, 209);padding:10px;">
-Content of <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/endpoint.rs" 
+Content of <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/helper/endpoint.rs" 
 title="src/helper/endpoint.rs" target="_blank">src/helper/endpoint.rs</a>
 </div>
 
@@ -223,19 +223,19 @@ pub fn extract_employee_login(
 
 For <code>application/x-www-form-urlencoded</code> content type, we call method <a href="https://docs.rs/serde_html_form/0.2.3/serde_html_form/fn.from_bytes.html" title="serde_html_form::from_bytes(...)" target="_blank">serde_html_form::from_bytes(...)</a> from (new) crate <a href="https://docs.rs/serde_html_form/0.2.3/serde_html_form/" title="serde_html_form" target="_blank">serde_html_form</a> to deserialise the byte stream to <code>EmployeeLogin</code>.
 
--- <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/Cargo.toml" title="Cargo.toml" target="_blank"><code>Cargo.toml</code></a> has been updated to include crate <a href="https://docs.rs/serde_html_form/0.2.3/serde_html_form/" title="serde_html_form" target="_blank">serde_html_form</a>.
+-- <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/Cargo.toml" title="Cargo.toml" target="_blank"><code>Cargo.toml</code></a> has been updated to include crate <a href="https://docs.rs/serde_html_form/0.2.3/serde_html_form/" title="serde_html_form" target="_blank">serde_html_form</a>.
 
 And for <code>application/json</code> content type, we call to <a href="https://docs.rs/serde_json/latest/serde_json/fn.from_slice.html" title="serde_json::from_slice(...)" target="_blank">serde_json::from_slice(...)</a> from the already included <a href="https://docs.rs/serde_json/latest/serde_json/" title="serde_json" target="_blank">serde_json</a> crate to do the work.
 
 These're the essential details of the code. The rest is fairly straightforward, and there's also sufficient documentation to aid the reading of the code.
 
-💥 Please also note that there're also some more new modules, such as <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/bh_libs/api_status.rs" title="src/bh_libs/api_status.rs" target="_blank"><code>src/bh_libs/api_status.rs</code></a> and <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/helper/messages.rs" title="src/helper/messages.rs" target="_blank"><code>src/helper/messages.rs</code></a>, they're very small, self-explanatory and have sufficient documentation where appropriate.
+💥 Please also note that there're also some more new modules, such as <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/bh_libs/api_status.rs" title="src/bh_libs/api_status.rs" target="_blank"><code>src/bh_libs/api_status.rs</code></a> and <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/helper/messages.rs" title="src/helper/messages.rs" target="_blank"><code>src/helper/messages.rs</code></a>, they're very small, self-explanatory and have sufficient documentation where appropriate.
 
 <a id="step-five-update-lib"></a>
 ❺ Register new login routes <code>/ui/login</code> and <code>/api/login</code>.
 
 <div style="background-color:rgb(209, 209, 209);padding:10px;">
-Updated <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/src/lib.rs"
+Updated <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/src/lib.rs"
 title="src/lib.rs" target="_blank">src/lib.rs</a>:
 </div>
 
@@ -262,7 +262,7 @@ pub async fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
 ```
 
 <a id="step-six-new-login-page"></a>
-❻ The last addition, the new <a href="https://github.com/behai-nguyen/rust_web_01/blob/main/templates/auth/login.html" title="templates/auth/login.html" target="_blank"><code>templates/auth/login.html</code></a>.
+❻ The last addition, the new <a href="https://github.com/behai-nguyen/rust_web_01/blob/6082e2df7f4f073c001f1707ebd418a33a08a6b3/templates/auth/login.html" title="templates/auth/login.html" target="_blank"><code>templates/auth/login.html</code></a>.
 
 Please note, this login page has only HTML. There is no CSS at all. It looks like a dog's breakfast, but it does work. There is no client-side validations either. 
 
