@@ -26,7 +26,8 @@
 	<script>
 		$( document ).ready( function() {
 			$( '#method' ).val( 'post' );
-			$( '#url' ).val( 'http://localhost:5000/api/login' );
+			// $( '#url' ).val( 'https://localhost:5000/api/login' );
+            $( '#url' ).val( 'https://192.168.0.16:5000/api/login' );
 			$( '#contentType' ).val( 'application/json' );
 			$( '#body' ).val( '{"email": "chirstian.koblick.10004@gmail.com", "password": "password"}' );
 
@@ -37,7 +38,8 @@
 				let contentType = $( '#contentType' ).val();
 				let ajaxData = $( '#body' ).val();
 
-				runAjaxCrossDomain( method, endPoint, requestHeaders, contentType, ajaxData )
+			    runAjaxCrossDomain( method, endPoint, requestHeaders, contentType, ajaxData )
+				// runAjaxEx( method, endPoint, requestHeaders, contentType, ajaxData )
 				    .then( function( data ) {
 						let { status, textStatus, jqXHR } = data;
 
@@ -53,16 +55,16 @@
 	<div class="d-flex row justify-content-center h-100">
 		<div class="col-7 p-5">
             <div class="row mb-2">
-                <div class="col-3">URL</div>
+                <div class="col-3"><label for="url">URL</label></div>
                 <div class="col-9">
-                    <input type="text" name="url" id="url" maxlength="255" class="form-control form-control-sm"/>
+                    <input type="text" name="url" id="url" maxlength="255" class="form-control form-control-sm">
                 </div>
             </div>
 
             <div class="row mb-2">
-                <div class="col-3">Method</div>
+                <div class="col-3"><label for="method">Method</label></div>
                 <div class="col-4">
-                    <select id="method" name="method" size="1" class="form-select form-select-sm">
+                    <select id="method" name="method" size="1" class="form-select form-select-sm" title="HTTP Methods">
                         <option value="get">GET</option>
                         <option value="post">POST</option>
                     </select>
@@ -70,9 +72,9 @@
             </div>
 
             <div class="row mb-2">
-                <div class="col-3">Content Type</div>
+                <div class="col-3"><label for="contentType">Content Type</label></div>
                 <div class="col-9">
-                    <select id="contentType" name="contentType" size="1" class="form-select form-select-sm">
+                    <select id="contentType" name="contentType" size="1" class="form-select form-select-sm" title="Content Type">
                         <option value="application/x-www-form-urlencoded; charset=UTF-8">application/x-www-form-urlencoded; charset=UTF-8</option>
                         <option value="application/json">application/json</option>
                     </select>
@@ -80,21 +82,21 @@
             </div>
 
             <div class="row mb-2">
-                <div class="col-3">Body</div>
+                <div class="col-3"><label for="body">Body</label></div>
                 <div class="col-9">
                     <textarea name="body" id="body" rows="3" class="form-control form-control-sm"></textarea>
                 </div>
             </div>
 
             <div class="row mb-2">
-                <div class="col-3">Headers</div>
+                <div class="col-3"><label for="headers">Headers</label></div>
                 <div class="col-9">
                     <textarea name="headers" id="headers" rows="3" class="form-control form-control-sm"></textarea>
                 </div>
             </div>
 
             <div class="row mb-2">
-                <div class="col-3">Run</div>
+                <div class="col-3"><label for="runBtn">Run</label></div>
                 <div class="col-9">
                     <button type="button" id="runBtn" class="btn btn-primary btn-sm">&nbsp;Go Get It!&nbsp;</button>
                 </div>
@@ -105,7 +107,7 @@
 
 		<div class="col-5 p-5">
             <div class="row mb-2">
-                <div class="col-2">Response</div>
+                <div class="col-2"><label for="response">Response</label></div>
             </div>
 
             <div class="row mb-2">
