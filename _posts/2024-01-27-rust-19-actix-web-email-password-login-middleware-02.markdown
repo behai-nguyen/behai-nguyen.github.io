@@ -835,6 +835,8 @@ and then either pass the request through or redirect to an appropriate route.
 This logic can be described by the following pseudocode:
 
 ```
+Requests to “/favicon.ico” should proceed.
+
 When Logged In
 --------------
 
