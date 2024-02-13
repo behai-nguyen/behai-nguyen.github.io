@@ -182,7 +182,7 @@ In the
 <a href="https://behainguyen.wordpress.com/2024/01/28/rust-simple-actix-web-email-password-login-and-request-authentication-using-middleware/" title="Rust: simple actix-web email-password login and request authentication using middleware." target="_blank">sixth</a> 
 post, we 
 <a href="https://behainguyen.wordpress.com/2024/01/28/rust-simple-actix-web-email-password-login-and-request-authentication-using-middleware/#some-current-issues" 
-title="Issue ❷"target="_blank">raised issue ❷</a>. I further noted in that section:
+title="Issue ❷" target="_blank">raised issue ❷</a>. I further noted in that section:
 
 > It seems logical, but it does not work when we log in using JSON with either an invalid email or password. The client tools simply report that the request could not be completed. I haven’t been able to work out why yet. 
 
