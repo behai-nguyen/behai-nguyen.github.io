@@ -256,7 +256,7 @@ title="Login error, no match on employee email"
 target="_blank">fn first_stage_login_error_response(request: &HttpRequest, message: &str) -> HttpResponse</a> 
 function, as discussed in the aforementioned 
 <a href="https://behainguyen.wordpress.com/2024/01/28/rust-simple-actix-web-email-password-login-and-request-authentication-using-middleware/#some-current-issues" 
-title="Issue ❷"target="_blank">issue ❷</a>. 
+title="Issue ❷" target="_blank">issue ❷</a>. 
 Additionally, we've included a call to create the 
 <a href="https://behainguyen.wordpress.com/2024/01/28/rust-simple-actix-web-email-password-login-and-request-authentication-using-middleware/#notes-on-cookies-our-own"
 title="The server-side per-request cookies" target="_blank">server-side per-request</a>
