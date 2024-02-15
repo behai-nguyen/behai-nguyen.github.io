@@ -67,7 +67,7 @@ git clone -b v0.8.0 https://github.com/behai-nguyen/rust_web_01.git
 The
 <a href="https://docs.rs/actix-web/latest/actix_web/" title="actix-web" target="_blank">actix-web</a>
 learning application mentioned above has been discussed 
-in the following six previous posts:
+in the following seven previous posts:
 
 <ol>
 <li style="margin-top:10px;"><a href="https://behainguyen.wordpress.com/2023/10/18/rust-web-application-mysql-server-sqlx-actix-web-and-tera/" title="Rust web application: MySQL server, sqlx, actix-web and tera" target="_blank">Rust web application: MySQL server, sqlx, actix-web and tera</a>.</li>
