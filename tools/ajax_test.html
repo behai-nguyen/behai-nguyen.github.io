@@ -24,22 +24,29 @@
     <script src="https://cdn.jsdelivr.net/gh/behai-nguyen/js@f2a9163e53fcb500850f2a6d2c1417a049163eb4/ajax_funcs.js"></script>
 
 	<script>
+        function getHeaders() {
+            var headerStr = $('#headers').val().trim();
+            if ( headerStr.length == 0 )
+                return {};
+				
+            return JSON.parse( headerStr );
+        };
+	
 		$( document ).ready( function() {
 			$( '#method' ).val( 'post' );
 			// $( '#url' ).val( 'https://localhost:5000/api/login' );
-            $( '#url' ).val( 'https://192.168.0.16:5000/api/login' );
+            $( '#url' ).val( 'https://localhost:5000/data/employees' );
 			$( '#contentType' ).val( 'application/json' );
-			$( '#body' ).val( '{"email": "chirstian.koblick.10004@gmail.com", "password": "password"}' );
+			$( '#body' ).val( '{"last_name": "%chi", "first_name": "%ak"}' );
 
             $('#runBtn').on( 'click', function(event) {
                 let method = $( '#method' ).val();
 				let endPoint = $( '#url' ).val();
-				let requestHeaders = {};
+				let requestHeaders = getHeaders();
 				let contentType = $( '#contentType' ).val();
 				let ajaxData = $( '#body' ).val();
-
+				
 			    runAjaxCrossDomain( method, endPoint, requestHeaders, contentType, ajaxData )
-				// runAjaxEx( method, endPoint, requestHeaders, contentType, ajaxData )
 				    .then( function( data ) {
 						let { status, textStatus, jqXHR } = data;
 
@@ -89,9 +96,15 @@
             </div>
 
             <div class="row mb-2">
-                <div class="col-3"><label for="headers">Headers</label></div>
+                <div class="col-3">&nbsp;</div>
+                <div class="col-9">One only. E.g. {"authorization": "chirstian.koblick.10004@gmail.com"}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-3"><label for="headers">A Header</label></div>
                 <div class="col-9">
-                    <textarea name="headers" id="headers" rows="3" class="form-control form-control-sm"></textarea>
+                    <textarea name="headers" id="headers" rows="3" class="form-control form-control-sm">
+{"authorization": "chirstian.koblick.10004@gmail.com"}</textarea>
                 </div>
             </div>
 
