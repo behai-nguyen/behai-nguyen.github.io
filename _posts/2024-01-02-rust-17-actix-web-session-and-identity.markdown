@@ -13,6 +13,10 @@ tags:
 
 <em>I've been studying user authentication with the <a href="https://docs.rs/actix-web/latest/actix_web/" title="actix-web" target="_blank">actix-web</a> framework. It seems that a popular choice is to use crate <a href="https://docs.rs/actix-identity/latest/actix_identity/" title="Crate actix_identity" target="_blank">actix-identity</a>, which requires crate <a href="https://docs.rs/actix-session/latest/actix_session/" title="Crate actix_session" target="_blank">actix-session</a>. To add these two (2) crates, the code of the existing application must be refactored a little. We first look at code refactoring and integration. Then we briefly discuss the official examples given in the documentation of the 2 (two) mentioned crates.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![094-feature-image.png](https://behainguyen.files.wordpress.com/2024/01/094-feature-image.png) |
 |:--:|
 | *Rust: adding actix-session and actix-identity to an existing actix-web application.* |
@@ -413,3 +417,7 @@ Feature image source:
 <a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>

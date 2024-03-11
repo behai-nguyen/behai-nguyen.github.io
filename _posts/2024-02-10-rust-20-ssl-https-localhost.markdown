@@ -31,6 +31,10 @@ tags:
 
 <em>We are going to enable our <a href="https://docs.rs/actix-web/latest/actix_web/" title="actix-web" target="_blank">actix-web</a> learning application to run under <code>HTTPS</code>. As a result, we need to do some minor refactoring to existing integration tests. We also move and rename an existing module for better code organisation.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![097-feature-image.png](https://behainguyen.files.wordpress.com/2024/02/097-feature-image.png) |
 |:--:|
 | *Rust: actix-web get SSL/HTTPS for localhost.* |
@@ -290,3 +294,7 @@ Feature image source:
 <a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>

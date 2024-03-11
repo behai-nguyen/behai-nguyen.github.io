@@ -12,6 +12,10 @@ tags:
 
 <em>We add request path extractor and MySQL database query calls to the official <code>SayHi</code> middleware example. The middleware creates a text message, attaches it to the request via extension. This text message contains the detail of the first matched record, if any found, otherwise a no record found message. A resource endpoint service handler then extracts this message, and returns it as HTML to the client.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![091-feature-image.png](https://behainguyen.files.wordpress.com/2023/11/091-feature-image.png) |
 |:--:|
 | *Rust: learning actix-web middleware 01.* |
@@ -490,3 +494,7 @@ Feature image source:
 <a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>

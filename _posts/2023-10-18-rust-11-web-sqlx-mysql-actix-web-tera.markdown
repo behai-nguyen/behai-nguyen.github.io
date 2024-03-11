@@ -41,6 +41,10 @@ tags:
 
 <em style="color:#111;">We write a Rust web application using a MySQL database. We use the already familiar crate <a href="https://docs.rs/sqlx/latest/sqlx" title="Crate sqlx" target="_blank">sqlx</a> for database works. The web framework we're using is crate <a href="https://actix.rs/docs/" title="actix-web" target="_blank">actix-web</a>. For Cross-Origin Resource Sharing (CORS) controls, we use crate <a href="https://docs.rs/actix-cors/latest/actix_cors/" title="actix-cors" target="_blank">actix-cors</a>. For HTML template processing, we use crate <a href="https://docs.rs/tera/latest/tera/" title="tera" target="_blank">tera</a>, which implements <a href="http://jinja.pocoo.org/" title="Jinja2" target="_blank">Jinja2</a> template syntax.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![087-feature-image.png](https://behainguyen.files.wordpress.com/2023/10/087-feature-image.png) |
 |:--:|
 | *Rust web application: MySQL server, sqlx, actix-web and tera.* |
@@ -555,3 +559,7 @@ Feature image source:
 <a href="https://quintagroup.com/cms/python/images/jinja2.png/@@images/919c2c3d-5b4e-4650-943a-b0df263f851b.png" target="_blank">https://quintagroup.com/cms/python/images/jinja2.png/@@images/919c2c3d-5b4e-4650-943a-b0df263f851b.png</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>

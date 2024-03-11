@@ -31,6 +31,10 @@ tags:
 
 <em>For our learning <a href="https://docs.rs/actix-web/latest/actix_web/" title="actix-web" target="_blank">actix-web</a> application, we are now adding two new features. ⓵ A simple email-password login with no session expiry. ⓶ A new middleware that manages <a href="#definition-request-auth"><code>request authentication</code></a> using an <a href="#definition-access-token"><code>access token</code></a> “generated” by the login process. All <a href="#issues-covered-existing-routes">five existing routes</a> are now protected by this middleware: they can only be accessed if the request has a valid <a href="#definition-access-token"><code>access token</code></a>. With these two new features added, this application acts as both an <a href="#definition-app-server"><code>application server</code></a> and an <a href="#definition-api-server"><code>API-like server</code> or a <code>service</code></a>.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![096-feature-image.png](https://behainguyen.files.wordpress.com/2024/01/096-feature-image.png) |
 |:--:|
 | *Rust: simple actix-web email-password login and request authentication using middleware.* |
@@ -1252,3 +1256,7 @@ Feature image source:
 <a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>

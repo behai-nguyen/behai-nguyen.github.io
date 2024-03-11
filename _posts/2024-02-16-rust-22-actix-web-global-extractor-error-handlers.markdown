@@ -64,6 +64,10 @@ tags:
 
 <em>Continuing with our <a href="https://docs.rs/actix-web/latest/actix_web/" title="actix-web" target="_blank">actix-web</a> learning application, we implement global extractor error handlers for both <code>application/json</code> and <code>application/x-www-form-urlencoded</code> data. This enhances the robustness of the code. Subsequently, we refactor the login data extraction process to leverage the global extractor error handlers.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![099-feature-image.jpg](https://behainguyen.files.wordpress.com/2024/02/099-feature-image.jpg) |
 |:--:|
 | *Rust: actix-web global extractor error handlers.* |
@@ -465,3 +469,7 @@ Feature image source:
 <a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>

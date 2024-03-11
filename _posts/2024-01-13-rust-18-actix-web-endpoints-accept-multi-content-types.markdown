@@ -33,6 +33,10 @@ tags:
 
 <em>We're implementing a login process for our <a href="https://docs.rs/actix-web/latest/actix_web/" title="actix-web" target="_blank">actix-web</a> learning application. We undertake some general updates to get ready to support login. We then implement a new <code>/api/login</code> route, which supports both <code>application/x-www-form-urlencoded</code> and <code>application/json</code> content types. In this post, we only implement deserialising the submitted request data, then echo some response. We also add a login page via route <code>/ui/login</code>.</em>
 
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![095-feature-image.png](https://behainguyen.files.wordpress.com/2024/01/095-feature-image.png) |
 |:--:|
 | *Rust: actix-web endpoints which accept both <code>application/x-www-form-urlencoded</code> and <code>application/json</code> content types.* |
@@ -313,3 +317,7 @@ Feature image source:
 <a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
 </li>
 </ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/rust_web_01" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
