@@ -346,11 +346,11 @@ And there are differences in the following areas:
 
 <ul>
 <li style="margin-top:10px;">
-<code>Flask</code>: <code>&lt;link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"></code>
+<code>Flask</code>: <code>&lt;link rel="stylesheet" href="\{\{ url_for('static', filename='styles.css') \}\}"></code>
 </li>
 
 <li style="margin-top:10px;">
-<code>FastAPI</code>: <code>&lt;link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}"></code>
+<code>FastAPI</code>: <code>&lt;link rel="stylesheet" href="\{\{ url_for('static', path='/styles.css') \}\}"></code>
 </li>			
 </ul>
 
