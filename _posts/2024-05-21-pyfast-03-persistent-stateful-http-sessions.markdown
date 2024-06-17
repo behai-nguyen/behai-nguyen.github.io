@@ -75,7 +75,7 @@ Requests must include the <code>session</code> cookie to be recognised as origin
 </p>
 
 <p>
-Note that the <a href="https://github.com/alex-oleshkevich/starsessions/blob/master/examples/redis_.py" title="starsessions Redis store example" target="_blank">starsessions Redis store example</a> has been written for the <a href="https://www.starlette.io/" title="Starlette framework" target="_blank">Starlette framework</a>. For <a href="https://fastapi.tiangolo.com/learn/"title="FastAPI" target="_blank">FastAPI</a>, we register middleware with <code>FastAPI().add_middleware(...)</code>.
+Note that the <a href="https://github.com/alex-oleshkevich/starsessions/blob/master/examples/redis_.py" title="starsessions Redis store example" target="_blank">starsessions Redis store example</a> has been written for the <a href="https://www.starlette.io/" title="Starlette framework" target="_blank">Starlette framework</a>. For <a href="https://fastapi.tiangolo.com/learn/" title="FastAPI" target="_blank">FastAPI</a>, we register middleware with <code>FastAPI().add_middleware(...)</code>.
 </p>
 
 <p>

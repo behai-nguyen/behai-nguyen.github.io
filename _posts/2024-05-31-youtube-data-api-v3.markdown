@@ -1158,8 +1158,8 @@ From the active virtual environment <code>venv</code>, launch the example as fol
 </p>
 
 ```
-▶️<code>Windows 10:</code>venv\Scripts\python.exe youtube_data_api.py 
-▶️<code>Ubuntu 22.10:</code>./venv/bin\python youtube_data_api.py
+▶️Windows 10:venv\Scripts\python.exe youtube_data_api.py 
+▶️Ubuntu 22.10:./venv/bin\python youtube_data_api.py
 ```
 
 <p>
