@@ -59,7 +59,7 @@ git clone -b v0.4.0 https://github.com/behai-nguyen/fastapi_learning.git
 
 <a id="new-functionality"></a>
 ❶ Continuing from the introduction above, after the completion of this post, 
-our <a href="https://fastapi.tiangolo.com/learn/"title="FastAPI" target="_blank">FastAPI</a> 
+our <a href="https://fastapi.tiangolo.com/learn/" title="FastAPI" target="_blank">FastAPI</a> 
 learning application will be capable of functioning as both an 
 <a href="https://behainguyen.wordpress.com/2024/01/28/rust-simple-actix-web-email-password-login-and-request-authentication-using-middleware/#definition-app-server" 
 title="application server" target="_blank"><code>application server</code></a> 
@@ -477,7 +477,7 @@ currently the <code>access_token</code> is still just the username:
 <a id="concluding-remarks"></a>
 ❽ During the development of the code for this post, I have learned some more useful 
 features of 
-<a href="https://fastapi.tiangolo.com/learn/"title="FastAPI" target="_blank">FastAPI</a> 
+<a href="https://fastapi.tiangolo.com/learn/" title="FastAPI" target="_blank">FastAPI</a> 
 I hope you would enjoy these features as well. We still have more to explore in this series, 
 though I am not certain what we will cover in the next post yet.
 
