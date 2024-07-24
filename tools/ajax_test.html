@@ -44,8 +44,9 @@
 				let endPoint = $( '#url' ).val();
 				let requestHeaders = getHeaders();
 				let contentType = $( '#contentType' ).val();
-				let ajaxData = $( '#body' ).val();
-				
+                let bodyVal = $( '#body' ).val().trim()
+				let ajaxData = (bodyVal.length > 0) ? bodyVal : '';
+
 			    runAjaxCrossDomain( method, endPoint, requestHeaders, contentType, ajaxData )
 				    .then( function( data ) {
 						let { status, textStatus, jqXHR } = data;
