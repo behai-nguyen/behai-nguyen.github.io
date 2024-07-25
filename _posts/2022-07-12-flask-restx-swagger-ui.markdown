@@ -12,6 +12,14 @@ Flask-RESTX provides support for building REST APIs. The resulting APIs come aut
 | *Python: Flask-RESTX and the Swagger UI automatic documentation.* |
 
 <p>
+<strong>Updated 25/July/2024:</strong> 
+With the <code>FastAPI</code> web framework, we get the <code>Swagger UI</code> 
+by default. I find <code>FastAPI</code> to be very impressive. I’ve been writing 
+about it in the <a href="https://github.com/behai-nguyen/fastapi_learning" 
+title="FastAPI Learning Series" target="_blank">FastAPI Learning Series</a>.
+</p>
+
+<p>
 <strong>Updated 14/July/2022:</strong> Final code for this post can be 
 cloned from <span class="keyword">GitHub</span> using:
 </p>
