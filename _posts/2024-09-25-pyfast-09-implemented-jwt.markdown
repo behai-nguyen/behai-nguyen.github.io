@@ -70,7 +70,7 @@ will stick with the implementation from the official tutorial.
 
 <a id="project-layout"></a>
 <p>
-❸ The full updated structure of the project is outlined below. 
+❷ The full updated structure of the project is outlined below. 
 </p>
 
 <p>
