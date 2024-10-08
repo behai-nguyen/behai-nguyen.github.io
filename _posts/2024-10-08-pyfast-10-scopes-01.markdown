@@ -1,0 +1,616 @@
+---
+layout: post
+title: "Python FastAPI: Implementing OAuth2 Scopes Part 01"
+
+description: In this part of our Python FastAPI learning series, we implement OAuth2 scopes. Our implementation is based on the advanced official tutorial on OAuth2 scopes, with some variations of our own. 
+
+custom-css-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
+
+custom-javascript-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
+
+gallery-image-list-01:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-01.png"
+
+gallery-image-list-02:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-02-a.png"
+
+gallery-image-list-03:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-02-b.png"
+
+gallery-image-list-04:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-02-c.png"
+
+gallery-image-list-05:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-02-d.png"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-02-e.png"
+
+gallery-image-list-06:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-02-f.png"
+
+tags:
+- Python
+- FastAPI
+- OAuth2
+- Scope
+- JSON Web Token
+- JWT
+---
+
+<em>
+In this part of our <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Python FastAPI Complete Series" target="_blank">Python FastAPI learning series</a>, we implement OAuth2 scopes. Our implementation is based on the advanced official tutorial on <a href="https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/" title="OAuth2 scopes" target="_blank">OAuth2 scopes</a>, with some variations of our own.
+</em>
+
+<h3>
+🐍 <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
+| ![122-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2024/10/122-feature-image.png) |
+|:--:|
+| *Python FastAPI: Implementing OAuth2 Scopes Part 01* |
+
+The code requires Python 3.12.4. Please refer to the <a href="https://github.com/behai-nguyen/fastapi_learning#the-code-after-tag-v040-requires-python-3124" title="The Code After Tag v0.4.0 Requires Python 3.12.4" target="_blank">following discussion</a> on how to upgrade to Python 3.12.4.
+
+🚀 <strong>Please note,</strong> complete code for this post can be downloaded from GitHub with:
+
+```
+git clone -b v0.10.0 https://github.com/behai-nguyen/fastapi_learning.git
+```
+
+<!--------------------------------------------------------------------------------->
+<h2>Table Of Contents</h2>
+
+<ul>
+<li style="margin-top:10px;">
+<a href="#the-objective">The Objective of This Post</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#user-scopes-assignment">Users and Scopes Assignment</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#project-layout">Project Layout</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring">Implementation Refactorings</a>
+
+<ul>
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-init">src/fastapi_learning/__init__.py</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-emp-mgr">src/fastapi_learning/businesses/employees_mgr.py</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-jwt-utils">src/fastapi_learning/common/jwt_utils.py</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-scope-utils">src/fastapi_learning/common/scope_utils.py</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-auth">src/fastapi_learning/controllers/auth.py</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-admin">src/fastapi_learning/controllers/admin.py</a>
+</li>
+</ul>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#impl-refactoring-tests">Tests</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#ui-testing">Testing Scope Implementation Using The Application UI</a>
+</li>
+
+<li style="margin-top:10px;">
+<a href="#concluding-remarks">Concluding Remarks</a>
+</li>
+</ul>
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="the-objective">The Objective of This Post</a>
+</h3>
+
+As stated, in this post, we discuss the implementation of OAuth2 scopes for our <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Python FastAPI Complete Series" target="_blank">Python FastAPI</a> learning application.
+
+The implementation is based on the advanced official tutorial on <a href="https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/" title="OAuth2 scopes" target="_blank">OAuth2 scopes</a>. As we will see in later sections, our implementation of scopes is slightly different from that of the tutorial, but it is still essentially based on this advanced tutorial.
+
+OAuth2 scopes are only limited to the <code>/admin/me</code> path and hence automatically propagate to the <code>/api/me</code> path.
+
+For the list of currently available URLs, please see <a href="https://behainguyen.wordpress.com/2024/07/25/python-fastapi-implementing-ssl-https-and-cors/#available-routes" title="Python FastAPI: Implementing SSL/HTTPS and CORS | Available Routes" target="_blank">this section</a> from an earlier post.
+
+Scopes are enforced at endpoint handler methods as per the tutorial, but not yet at the UI level. That is, checking for assigned scopes before generating the UIs that trigger requests to the underlying endpoint handlers.
+
+Please note that a <code>scope</code> implicitly implies <code>permission</code>. We will use the two terms interchangeably throughout this post.
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="user-scopes-assignment">Users and Scopes Assignment</a>
+</h3>
+
+We don’t provide users with a list of scopes to choose from. The application determines which scopes are available to a user after they successfully log in. This approach is based on the following recommendation:
+
+> ...
+> But in your application, for security, you should make sure you only add the scopes that the user is actually able to have, or the ones you have predefined.
+
+-- See the following official <span style="font-weight:bold;color:red">Danger</span> alert note on <a href="https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/#jwt-token-with-scopes" title="JWT token with scopes" target="_blank">JWT token with scopes</a>.
+
+💥 Please take note of the following two implementation-specific approaches:
+
+<ol>
+<a id="user-scopes-assignment-mock"></a>
+<li style="margin-top:10px;">
+We are implementing a mock user-scope assignment. That is, we hardcode a 
+list of users with specific scope(s). The rest of the users who are not 
+in this list are assigned the default scope of <code>user:read</code>.
+</li>
+<a id="user-scopes-assignment-endpoint"></a>
+<li style="margin-top:10px;">
+Endpoint handler methods might require more than one scope. The requesting 
+user must have all those scopes; otherwise, the request is rejected.
+</li>
+</ol>
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="project-layout">Project Layout</a>
+</h3>
+
+The full updated structure of the project is outlined below. 
+
+<strong>-- Please note,</strong> those marked with <span style="font-size:1.5em;">★</span> are updated, and those marked with <span style="font-size:1.5em;">☆</span> are new.
+
+```
+/home/behai/fastapi_learning/
+.
+├── cert
+│   ├── cert.pem
+│   └── key.pem
+├── .env
+├── logger_config.yaml
+├── main.py
+├── pyproject.toml
+├── pytest.ini ★
+├── README.md ★
+├── src
+│   └── fastapi_learning
+│       ├── businesses
+│       │   ├── app_business.py
+│       │   ├── base_business.py
+│       │   ├── base_validation.py
+│       │   ├── employees_mgr.py ★
+│       │   └── employees_validation.py
+│       ├── common
+│       │   ├── consts.py ★
+│       │   ├── jwt_utils.py ★
+│       │   ├── queue_logging.py
+│       │   └── scope_utils.py ☆
+│       ├── controllers
+│       │   ├── admin.py ★
+│       │   ├── auth.py ★
+│       │   └── __init__.py
+│       ├── __init__.py ★
+│       ├── models
+│       │   └── employees.py
+│       ├── static
+│       │   └── styles.css
+│       └── templates
+│           ├── admin
+│           │   └── me.html
+│           ├── auth
+│           │   ├── home.html
+│           │   └── login.html
+│           ├── base.html
+│           └── templates
+│               ├── admin
+│               │   └── me.html
+│               ├── auth
+│               │   ├── home.html
+│               │   └── login.html
+│               └── base.html
+└── tests
+    ├── business
+    │   ├── test_employees_mgr.py
+    │   └── test_scope_utils.py ☆
+    ├── conftest.py
+    ├── __init__.py
+    ├── integration
+    │   ├── test_admin_itgt.py
+    │   ├── test_api_itgt.py
+    │   ├── test_auth_itgt.py
+    │   ├── test_expired_jwt.py
+    │   └── test_scope_permission_itgt.py ☆
+    ├── README.md
+    └── unit
+        └── test_employees.py
+```
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring">Implementation Refactorings</a>
+</h3>
+
+In this section, we discuss the code changes.
+
+<!--------------------------------------------------------------------------------->
+<h4 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-init">src/fastapi_learning/__init__.py</a>
+</h4>
+
+<a id="scopes"></a>
+In a previous revision, we defined <a href="https://github.com/behai-nguyen/fastapi_learning/blob/aa042206d4af5a1b1c2c3ce2c8bedebf50a5727c/src/fastapi_learning/__init__.py#L12-L21" title="A previous src/fastapi_learning/__init__.py module" target="_blank"><code>APP_SCOPES</code></a>. This is the list of all scopes. The meaning of each scope might evolve as we add more functionalities to the application.
+
+<a id="scopes-relationship"></a>
+In this revision, we add an additional definition: <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/__init__.py#L23-L44" title="The src/fastapi_learning/__init__.py module" target="_blank"><code>APP_SCOPE_DEPENDENCIES</code></a>. Let’s have a look at this definition.
+
+Certain scopes imply having some other scopes. The scope <code>admin:read</code> implies also having the <code>user:read</code> scope. That is, for endpoint handlers that require the <code>user:read</code> scope, if the requesting user only has <code>admin:read</code>, the request would be deemed to have enough permission as <code>admin:read</code> includes <code>user:read</code>.
+
+Likewise, the scope <code>super:*</code> includes all other scopes.
+
+<!--------------------------------------------------------------------------------->
+<h4 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-emp-mgr">src/fastapi_learning/businesses/employees_mgr.py</a>
+</h4>
+
+There are the following changes to the <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/businesses/employees_mgr.py" title="The businesses/employees_mgr.py module" target="_blank"><code>businesses/employees_mgr.py</code></a> module:
+
+<a id="impl-refactoring-emp-mgr-mock-user-list"></a>
+⓵ A mock user list as <a href="#user-scopes-assignment-mock">previously described</a>:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+</pre></td><td class="code"><pre><span class="c1"># Proper implementation might turn this into a database table.
+</span><span class="n">MOCK_USER_SCOPES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s">'user_name'</span><span class="p">:</span> <span class="s">'*'</span><span class="p">,</span> 
+        <span class="s">'scopes'</span><span class="p">:</span> <span class="p">[</span><span class="s">'user:read'</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">'user_name'</span><span class="p">:</span> <span class="s">'moss.shanbhogue.10045@gmail.com'</span><span class="p">,</span>
+        <span class="s">'scopes'</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">'user_name'</span><span class="p">:</span> <span class="s">'behai_nguyen@hotmail.com'</span><span class="p">,</span> 
+        <span class="s">'scopes'</span><span class="p">:</span> <span class="p">[</span><span class="s">'user:read'</span><span class="p">,</span> <span class="s">'user:write'</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">'user_name'</span><span class="p">:</span> <span class="s">'kyoichi.maliniak.10005@gmail.com'</span><span class="p">,</span> 
+        <span class="s">'scopes'</span><span class="p">:</span> <span class="p">[</span><span class="s">'admin:read'</span><span class="p">,</span> <span class="s">'admin:write'</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">'user_name'</span><span class="p">:</span> <span class="s">'mary.sluis.10011@gmail.com'</span><span class="p">,</span> 
+        <span class="s">'scopes'</span><span class="p">:</span> <span class="p">[</span><span class="s">'super:*'</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+Let’s explain the above list:
+
+<ul>
+<li style="margin-top:10px;">
+<strong>User</strong> <code>*</code>: This entry denotes the scope(s) assigned to all users who are not in this list.
+</li>
+
+<li style="margin-top:10px;">
+<strong>User</strong> <code>moss.shanbhogue.10045@gmail.com</code>: This user is effectively banned. They can only log in and log out, and that is about it.
+</li>
+
+<li style="margin-top:10px;">
+<strong>User</strong> <code>behai_nguyen@hotmail.com</code>: This user can only read and update their own information. The precise meaning of <em>“own information”</em> is still evolving. At this point, it is the user information.
+</li>
+
+<li style="margin-top:10px;">
+<strong>User</strong> <code>kyoichi.maliniak.10005@gmail.com</code>: This is an admin user. They can read and update their own as well as other users’ information. When more functionalities are added, this user might have access to those new functionalities as well.
+</li>
+
+<li style="margin-top:10px;">
+<strong>User</strong> <code>mary.sluis.10011@gmail.com</code>: This is a super user. Super users should have access to all application’s functionalities.
+</li>
+</ul>
+
+Please note that <a href="#impl-refactoring-tests-usr-scope-perm">user and scope/permission testing</a> are based around these mock users and scopes assignment.
+
+<a id="impl-refactoring-emp-mgr-mock-user-scopes"></a>
+⓶ A new method which retrieves users’ scopes using the <a href="#impl-refactoring-emp-mgr-mock-user-list"><code>MOCK_USER_SCOPES</code></a>:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">66
+67
+68
+69
+70
+</pre></td><td class="code"><pre><span class="k">def</span> <span class="nf">mock_get_user_scopes</span><span class="p">(</span><span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">MOCK_USER_SCOPES</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s">'user_name'</span><span class="p">]</span> <span class="o">==</span> <span class="n">email</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">'scopes'</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> \
+        <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">MOCK_USER_SCOPES</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s">'user_name'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'*'</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">'scopes'</span><span class="p">]</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+The code is simple: If the user — identified by <code>email</code> — does not match any user in the mock list, then use the <code>user_name</code> of <code>*</code> to retrieve the scopes.
+
+💥 Proper implementation would have <a href="#scopes">APP_SCOPES</a>, <a href="#scopes-relationship">APP_SCOPE_DEPENDENCIES</a>, and <a href="#impl-refactoring-emp-mgr-mock-user-list">MOCK_USER_SCOPES</a> in a database, and this method would just retrieve the user scope list from the database.
+
+<a id="impl-refactoring-emp-mgr-user-login"></a>
+⓷ And finally, in the <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/businesses/employees_mgr.py#L123-L213" title="def login(self, email: str, password: str) -&gt; ResultStatus:" target="_blank"><code>login(...)</code></a> method: After successfully logging a user in, we proceed to retrieve the user-assigned scopes and add the scope list to the return data as: 
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">163
+</pre></td><td class="code"><pre>            <span class="n">status</span> <span class="o">=</span> <span class="n">status</span><span class="p">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">mock_get_user_scopes</span><span class="p">(</span><span class="n">email</span><span class="p">),</span> <span class="s">'scopes'</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<a id="impl-refactoring-emp-mgr-user-login-return-dict"></a>
+Below is an example of a login return dictionary which includes the logged-in user assigned scope list:
+
+```json
+{
+	"status": {
+		"code": 200,
+		"text": "Data has been retrieved successfully."
+	},
+	"data": {
+		"items": [
+			{
+				"emp_no": 600001,
+				"email": "behai_nguyen@hotmail.com",
+				"password": "$argon2id$v=19$m=16,t=2,p=1$b2szcWQ4a0tlTkFydUdOaw$7LX7WCYbItEMEwvH3yUxPA",
+				"birth_date": "09/12/1978",
+				"first_name": "Be Hai",
+				"last_name": "Nguyen",
+				"gender": "M",
+				"hire_date": "08/10/2021"
+			}
+		],
+		"scopes": [
+			"user:read",
+			"user:write"
+		]
+	}
+}
+```
+
+<!--------------------------------------------------------------------------------->
+<h4 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-jwt-utils">src/fastapi_learning/common/jwt_utils.py</a>
+</h4>
+
+In the <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/jwt_utils.py" title="The common/jwt_utils.py module" target="_blank"><code>jwt_utils.py</code></a> module, there is a single code update in the method <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/jwt_utils.py#L29-L47" title="def decode_access_token(token: str) -&gt; Union[TokenData, HTTPException]:" target="_blank"><code>decode_access_token(...)</code></a>:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">44
+</pre></td><td class="code"><pre>        <span class="k">return</span> <span class="n">TokenData</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="n">payload</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"scopes"</span><span class="p">,</span> <span class="p">[]))</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+That is, we extract the scope list from <a href="#impl-refactoring-emp-mgr-user-login-return-dict">the returned logged-in data</a>, and set this list to the <code>scopes</code> field of the returned <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/__init__.py#L51-L53" title="class TokenData(BaseModel):" target="_blank"><code>TokenData</code></a>. The login and scope list have been discussed in <a href="#impl-refactoring-emp-mgr-user-login">this section</a>.
+
+<!--------------------------------------------------------------------------------->
+<h4 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-scope-utils">src/fastapi_learning/common/scope_utils.py</a>
+</h4>
+
+This new <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/scope_utils.py" title="The common/scope_utils.py module" target="_blank"><code>common/scope_utils.py</code></a> module is web framework independent. It could be taken out and used in other applications that use the same scope/permission approach.
+
+There is only a single method, <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/scope_utils.py#L7-L50" title="def has_required_permissions(required_scopes: list, assigned_scopes: list) -&gt; bool:" target="_blank"><code>has_required_permissions(...)</code></a>. This method implements the permissions checking which we have <a href="#user-scopes-assignment-endpoint">previously outlined</a>:
+
+> Endpoint handler methods might require more than one scope. The requesting user must have all those scopes; otherwise, the request is rejected.
+
+The implementation of the method itself has sufficient inline comments explaining the code. It is also fairly short and should be self-explanatory.
+
+It is further discussed in a later <a href="#impl-refactoring-tests-scope-utils">section on testing</a>.
+
+<!--------------------------------------------------------------------------------->
+<h4 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-auth">src/fastapi_learning/controllers/auth.py</a>
+</h4>
+
+In the <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/controllers/auth.py" title="The controllers/auth.py common" target="_blank"><code>controllers/auth.py</code></a> module, we update the <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/controllers/auth.py#L106-L185" title="async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -&gt; Union[Token, None]:" target="_blank"><code>login(...)</code></a> method to include the scope list in the access token:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">179
+180
+</pre></td><td class="code"><pre>    <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s">'sub'</span><span class="p">:</span> <span class="n">op_status</span><span class="p">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">'email'</span><span class="p">],</span>
+                                             <span class="s">'scopes'</span><span class="p">:</span> <span class="n">op_status</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">scopes</span><span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+The new field <code>'scopes': op_status.data.scopes</code> is added to the <code>data</code> dictionary parameter. Please refer to <a href="#impl-refactoring-emp-mgr-user-login">a previous discussion</a> for detailed information on how the scope list is constructed.
+
+<!--------------------------------------------------------------------------------->
+<h4 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-admin">src/fastapi_learning/controllers/admin.py</a>
+</h4>
+
+In the existing <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/controllers/admin.py" title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a> module, we make two changes to the helper method <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/controllers/admin.py#L58-L99" title="async def get_current_user(security_scopes: SecurityScopes, token: Annotated[str, Depends(oauth2_scheme)]):" target="_blank"><code>get_current_user(...)</code></a>:
+
+⓵ Add the new parameter <code>security_scopes: SecurityScopes</code>, which contains the required scopes to run this operation:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">58
+59
+60
+</pre></td><td class="code"><pre><span class="k">async</span> <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span>
+        <span class="n">security_scopes</span><span class="p">:</span> <span class="n">SecurityScopes</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)]):</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+⓶ Call the <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/scope_utils.py#L7-L50" title="def has_required_permissions(required_scopes: list, assigned_scopes: list) -&gt; bool:" target="_blank"><code>has_required_permissions(...)</code></a> method to ascertain that the requesting user has sufficient permissions:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">94
+97
+98
+99
+</pre></td><td class="code"><pre>    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_required_permissions</span><span class="p">(</span><span class="n">security_scopes</span><span class="p">.</span><span class="n">scopes</span><span class="p">,</span> <span class="n">token_data</span><span class="p">.</span><span class="n">scopes</span><span class="p">):</span> 
+        <span class="n">logger</span><span class="p">.</span><span class="n">debug</span><span class="p">(</span><span class="n">INVALID_PERMISSIONS_MSG</span><span class="p">)</span>
+        <span class="n">credentials_exception</span><span class="p">.</span><span class="n">detail</span> <span class="o">=</span> <span class="n">INVALID_PERMISSIONS_MSG</span>
+        <span class="k">return</span> <span class="n">credentials_exception</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+If the scope requirements fail, meaning the requesting user does not have sufficient permissions, then an appropriate exception is returned.
+
+Please note, we could do permission checking prior to identifying the user, but I think checking for the user first, then checking for user permissions is a bit more logical.
+
+And finally, both endpoint handler methods <code>read_users_me(...)</code> and <code>read_users_me_api(...)</code> signatures get updated as follows:
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">101
+102
+103
+104
+105
+106
+</pre></td><td class="code"><pre><span class="o">@</span><span class="n">router</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"/me"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">read_users_me</span><span class="p">(</span>
+    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">LoggedInEmployee</span><span class="p">,</span> 
+                            <span class="n">Security</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="s">"user:read"</span><span class="p">])]</span>
+<span class="p">):</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">162
+163
+164
+165
+166
+167
+</pre></td><td class="code"><pre><span class="o">@</span><span class="n">api_router</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"/me"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">read_users_me_api</span><span class="p">(</span>
+    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">LoggedInEmployee</span><span class="p">,</span> 
+                            <span class="n">Security</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="s">"user:read"</span><span class="p">])]</span>
+<span class="p">):</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+That is, for the parameter <code>current_user</code>, <code>Security(get_current_user, scopes=["user:read"])</code> replaces <code>Depends(get_current_active_user)</code>.
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="impl-refactoring-tests">Tests</a>
+</h3>
+
+We have implemented two new test modules for testing the new scope/permission feature.
+
+<a id="impl-refactoring-tests-scope-utils"></a>
+⓵ The new test module <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/tests/business/test_scope_utils.py" title="The tests/business/test_scope_utils.py module" target="_blank"><code>test_scope_utils.py</code></a>.
+
+Tests in this module ensure that the method <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/scope_utils.py#L7-L50" title="def has_required_permissions(required_scopes: list, assigned_scopes: list) -&gt; bool:" target="_blank"><code>has_required_permissions(...)</code></a> in the module <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/src/fastapi_learning/common/scope_utils.py" title="The common/scope_utils.py module" target="_blank"><code>common/scope_utils.py</code></a> works as intended.
+
+<a id="impl-refactoring-tests-usr-scope-perm"></a>
+⓶ The new test module <a href="https://github.com/behai-nguyen/fastapi_learning/blob/09f7ef07a9f4332eef0e221b550c7dc826a0ea25/tests/integration/test_scope_permission_itgt.py" title="The tests/integration/test_scope_permission_itgt.py module" target="_blank"><code>test_scope_permission_itgt.py</code></a>.
+
+Tests in this module ensure that scopes assigned to users work as intended. That is, users with sufficient scope assignments should be able to access the requested URL paths. Currently, we have two such URLs, which are <code>/admin/me</code> and <code>/api/me</code>. Please see an <a href="#the-objective">earlier discussion</a> in the introduction of this post.
+
+⓷ All existing tests should still work without needing any refactoring. Please see the screenshot below:
+
+{% include image-gallery.html list=page.gallery-image-list-01 %}
+<br/>
+
+For documentation on the exceptions raised at the end of tests, please see <a href="https://github.com/behai-nguyen/fastapi_learning/blob/main/tests/README.md" title="Test exception documentation" target="_blank">this document</a>.
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="ui-testing">Testing Scope Implementation Using The Application UI</a>
+</h3>
+
+Let’s see how scopes work using the application UI. Log in using 
+<code>moss.shanbhogue.10045@gmail.com</code> and <code>password</code>.
+<a id="impl-refactoring-emp-mgr-mock-user-list">Recall that</a> this user 
+has <a href="#impl-refactoring-emp-mgr-mock-user-list">no assigned scope</a> 
+and is effectively banned. This user can only log in and log out.
+
+The screenshot below shows the access token:
+
+{% include image-gallery.html list=page.gallery-image-list-02 %}
+<br/>
+
+The screenshot below shows that the access token contains an empty scope list:
+
+{% include image-gallery.html list=page.gallery-image-list-03 %}
+<br/>
+
+When we click on the <code>My Info</code> button, the request gets rejected with an appropriate message:
+
+{% include image-gallery.html list=page.gallery-image-list-04 %}
+<br/>
+
+Similarly, when we click on the <code>My Info as JSON</code> button, the request is also rejected with a similar message:
+
+{% include image-gallery.html list=page.gallery-image-list-05 %}
+<br/>
+
+Finally, accessing the same endpoint using the same access token in <a href="https://www.postman.com/" title="Postman" target="_blank">Postman</a>:
+
+{% include image-gallery.html list=page.gallery-image-list-06 %}
+<br/>
+
+<!--------------------------------------------------------------------------------->
+<h3 style="color:teal;text-transform: none;">
+  <a id="concluding-remarks">Concluding Remarks</a>
+</h3>
+
+This is the first part of our exploration of <a href="https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/" title="OAuth2 scopes" target="_blank">OAuth2 scopes</a>.
+
+Next, I would like to have an option to display or hide UI elements based on users’ scope availability. For example, for a user such as <code>moss.shanbhogue.10045@gmail.com</code>, who has no scope, the application should be able to decide whether or not to display the <code>My Info</code> and <code>My Info as JSON</code> buttons, since the underlying endpoint handler method rejects the requests anyway.
+
+Once this new feature has been implemented, it will automatically apply to any new functionalities we add to the application.
+
+Thank you for reading. I hope you find the information in this post useful. Stay safe, as always.
+
+✿✿✿
+
+Feature image source:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2022/09/ubuntu-2210-kinetic-kudu-default-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.python.org/downloads/release/python-3124/" target="_blank">https://www.python.org/downloads/release/python-3124/</a>
+</li>
+<li>
+<a href="https://fastapi.tiangolo.com/" target="_blank">https://fastapi.tiangolo.com/</a>
+</li>
+<li>
+<a href="https://1000logos.net/download-image/" target="_blank">https://1000logos.net/download-image/</a>
+</li>
+<li>
+<a href="https://www.logo.wine/logo/MySQL" target="_blank">https://www.logo.wine/logo/MySQL</a>
+</li>
+<li>
+<a href="https://icon-icons.com/download/170836/PNG/512/" target="_blank">https://icon-icons.com/download/170836/PNG/512/</a>
+</li>
+<li>
+<a href="https://www.stickpng.com/img/icons-logos-emojis/tech-companies/mariadb-full-logo" target="_blank">https://www.stickpng.com/img/icons-logos-emojis/tech-companies/mariadb-full-logo</a>
+</li>
+</ul>
+
+<h3>
+🐍 <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
