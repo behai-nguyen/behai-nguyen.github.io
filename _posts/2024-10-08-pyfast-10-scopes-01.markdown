@@ -212,14 +212,7 @@ The full updated structure of the project is outlined below.
 │           ├── auth
 │           │   ├── home.html
 │           │   └── login.html
-│           ├── base.html
-│           └── templates
-│               ├── admin
-│               │   └── me.html
-│               ├── auth
-│               │   ├── home.html
-│               │   └── login.html
-│               └── base.html
+│           └── base.html
 └── tests
     ├── business
     │   ├── test_employees_mgr.py

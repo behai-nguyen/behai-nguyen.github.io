@@ -194,14 +194,7 @@ are updated, and those marked with <span style="font-size:1.5em;">☆</span> are
 │           ├── auth
 │           │   ├── home.html
 │           │   └── login.html
-│           ├── base.html
-│           └── templates
-│               ├── admin
-│               │   └── me.html
-│               ├── auth
-│               │   ├── home.html
-│               │   └── login.html
-│               └── base.html
+│           └── base.html
 └── tests
     ├── business ☆
     │   └── test_employees_mgr.py
