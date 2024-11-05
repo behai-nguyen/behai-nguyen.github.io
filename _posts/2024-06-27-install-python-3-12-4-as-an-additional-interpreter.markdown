@@ -65,6 +65,69 @@ use the following command:
 C:\PF\Python312\python.exe -m venv venv
 ```
 
+<a id="on-ubuntu-24-04-1"></a>
+<h4>Updated on 05/November/2024 -- Starts</h4>
+
+<h3>On <code>Ubuntu 24.04.1 LTS (Noble Numbat)</code></h3>
+
+I have recently updated to <code>Ubuntu 24.04.1 LTS (Noble Numbat)</code>. I followed the steps in this post for Python <code>3.12.4</code>, but it didn't work. I gave up and tried Python <code>3.13.0</code> instead, which did work. Here are my steps for <code>Ubuntu 24.04.1 LTS (Noble Numbat)</code> and <code>Python 3.13.0</code>:
+
+● Install any pending updates:
+
+```
+$ sudo apt-get update
+$ sudo apt-get upgrade
+```
+
+● Install build tools/dependencies:
+
+```
+$ sudo apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libgdbm-dev libnss3-dev libffi-dev pkg-config
+```
+
+● Prepare Python <code>3.13.0</code> source code:
+
+```
+$ tar -xf /home/behai/Public/Python-3.13.0.tgz
+$ cd Python-3.13.0/
+```
+
+● Prepare the build:
+
+```
+$ ./configure --enable-optimizations --with-ensurepip=install
+```
+
+● Build Python <code>3.13.0</code> source code:
+
+Determine the number of cores the current machine has:
+
+```
+$ nproc
+```
+
+Use the number of cores, which is <code>4</code>, in the <code>make</code> command:
+
+```
+$ make -j4
+```
+
+● Finally, install the built Python <code>3.13.0</code>:
+
+```
+$ sudo make -j4 altinstall
+```
+
+```
+🐍 Python <code>3.13.0</code>'s path is <code>/usr/local/bin/python3.13</code>.
+```
+
+```
+$ /usr/local/bin/python3.13 --version
+```
+
+<h4>Updated on 05/November/2024 -- Ends</h4>
+
 <a id="on-ubuntu-22-10"></a>
 ❷ On Ubuntu 22.10, I succeeded the first time, but I just did 
 not know where it was installed 😂.
