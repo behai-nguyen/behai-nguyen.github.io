@@ -1,0 +1,894 @@
+---
+layout: post
+title: "Python FastAPI: OAuth2 Scopes Part 03 - New CRUD Endpoints and User-Assigned Scopes"
+
+description: Continuing with the FastAPI OAuth2 scopes topic, in this installment of our Python FastAPI learning series, we will implement seven (7) new routes that perform CRUD operations on the employees table. These new routes require scopes that we have implemented but have not used so far&#58; user&#58;write, admin&#58;read, and admin&#58;write. Please recall that we proposed this implementation in the last post.
+
+custom-css-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
+
+custom-javascript-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
+
+gallery-image-list:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/11/126-01.png"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/11/126-02.png"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2024/11/126-03.png"
+
+tags:
+- Python
+- FastAPI
+- OAuth2
+- Scope
+- JSON Web Token
+- JWT
+- UI
+---
+
+<em>
+Continuing with the <a href="https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/" title="OAuth2 scopes" target="_blank">FastAPI OAuth2 scopes</a> topic, in this installment of our <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Complete Series" target="_blank"> Python FastAPI learning series</a>, we will implement seven (7) new routes that perform CRUD operations on the <code>employees</code> table. These new routes require scopes that we have implemented but have not used so far: <code>user:write</code>, <code>admin:read</code>, and <code>admin:write</code>. Please recall that we proposed this implementation in the <a href="https://behainguyen.wordpress.com/2024/10/19/python-fastapi-oauth2-scopes-part-02-ui-elements-and-user-assigned-scopes/#concluding-remarks" title="Python FastAPI: OAuth2 Scopes Part 02 - UI Elements and User-Assigned Scopes" target="_blank">last post</a>.
+</em>
+
+<h3>
+🐍 <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
+| ![126-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2024/11/126-feature-image.png) |
+|:--:|
+| *Python FastAPI: OAuth2 Scopes Part 03 - New CRUD Endpoints and User-Assigned Scopes* |
+
+<p>
+The code requires Python 3.12.4. Please refer to the 
+<a href="https://github.com/behai-nguyen/fastapi_learning#the-code-after-tag-v040-requires-python-3124" 
+title="The Code After Tag v0.4.0 Requires Python 3.12.4" target="_blank">following 
+discussion</a> on how to upgrade to Python 3.12.4.
+</p>
+
+<p>
+🚀 <strong>Please note,</strong> complete code for this post
+can be downloaded from GitHub with:
+</p>
+
+```
+git clone -b v0.12.0 https://github.com/behai-nguyen/fastapi_learning.git
+```
+
+<a id="project-layout"></a>
+<p>
+❶ We have added a few more files to the application. The updated structure of the project is outlined below.
+</p>
+
+<p>
+<strong>-- Please note,</strong> those marked with <span style="font-size:1.5em;">★</span> 
+are updated, and those marked with <span style="font-size:1.5em;">☆</span> are new.
+</p>
+
+```
+/home/behai/fastapi_learning/
+.
+├── cert
+│   ├── cert.pem
+│   └── key.pem
+├── .env
+├── logger_config.yaml
+├── main.py ★
+├── pyproject.toml ★
+├── pytest.ini ★
+├── README.md ★
+├── sql_scripts
+│   └── postgres
+│       └── 04_test_get_employees_stored_method.sql ☆
+├── src
+│   └── fastapi_learning
+│       ├── businesses
+│       │   ├── app_business.py
+│       │   ├── base_business.py
+│       │   ├── base_validation.py ★
+│       │   ├── employees_mgr.py ★
+│       │   └── employees_validation.py ★
+│       ├── common
+│       │   ├── consts.py ★
+│       │   ├── jwt_utils.py ★
+│       │   ├── queue_logging.py
+│       │   └── scope_utils.py
+│       ├── controllers
+│       │   ├── admin.py
+│       │   ├── auth.py ★
+│       │   ├── employees_admin.py ☆
+│       │   ├── __init__.py ★
+│       │   └── required_login.py ☆
+│       ├── __init__.py ★
+│       ├── models
+│       │   └── employees.py ★
+│       ├── static
+│       │   └── js
+│       │       └── application.js ☆
+│       └── templates
+│           ├── admin
+│           │   └── me.html
+│           ├── auth
+│           │   ├── home.html ★
+│           │   └── login.html
+│           ├── base.html ★
+│           └── emp ☆
+│               ├── insert.html
+│               ├── search.html
+│               ├── search_result.html
+│               └── update.html
+└── tests
+    ├── business
+    │   ├── test_employees_mgr.py ★
+    │   ├── test_employees_validation.py ☆
+    │   └── test_scope_utils.py
+    ├── conftest.py
+    ├── __init__.py ★
+    ├── integration
+    │   ├── test_admin_itgt.py
+    │   ├── test_api_itgt.py
+    │   ├── test_auth_itgt.py
+    │   ├── test_employees_itgt.py ☆
+    │   ├── test_expired_jwt.py
+    │   ├── test_scope_permission_itgt.py
+    │   └── test_scope_ui_itgt.py
+    ├── README.md
+    └── unit
+        └── test_employees.py ★
+```
+
+<a id="database-update"></a>
+<p>
+❷ Update a PostgreSQL stored method. 
+</p>
+
+<p>
+Please recall from the 
+<a href="https://behainguyen.wordpress.com/2024/08/04/python-fastapi-enabling-database-support/" title="Python FastAPI: Enabling Database Support" target="_blank">seventh post</a> that the database used is a modified version of the one used in the two <a href="https://github.com/behai-nguyen/bh_database/tree/main/examples" title="bh-database examples" target="_blank">examples</a> provided for the <a href="https://pypi.org/project/bh-database/" title="bh-database" target="_blank">bh-database</a> wrapper classes for SQLAlchemy. As such, the stored methods created by <a href="https://github.com/behai-nguyen/bh_database/tree/main/sql_scripts" title="bh_database/sql_scripts/" target="_blank">these SQL scripts</a> should be present in the database. For this learning application, we have added the <code>email</code> and <code>password</code> columns to the <code>employees</code> table, making the PostgreSQL stored method <code>get_employees(...)</code> outdated.
+</p>
+
+<p>
+We need to apply this new PostgreSQL script 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/sql_scripts/postgres/04_test_get_employees_stored_method.sql" 
+title="Update PostgreSQL's get_employees(...) method" 
+target="_blank"><code>sql_scripts/postgres/04_test_get_employees_stored_method.sql</code></a> 
+to update the mentioned stored method. You might need to update the schema name to your appropriate one.
+</p>
+
+<p>
+🙏 I maintain two separate databases: one for the 
+<a href="https://pypi.org/project/bh-database/" title="bh-database" 
+target="_blank">bh-database</a>'s 
+<a href="https://github.com/behai-nguyen/bh_database/tree/main/examples" 
+title="bh-database examples" target="_blank">examples</a> and another for this application.
+</p>
+
+<a id="crud-rules"></a>
+<p>
+❸ Let's discuss the CRUD rules for our implementation. Please note that <code>user number</code> and <code>employee number</code> are used interchangeably and both refer to the <code>employees.emp_no</code> column.
+</p>
+
+<a id="crud-rule-unique-email"></a>
+<p>
+⓵ <code>employees.email</code> is unique. However, there is no unique database constraint. This rule is enforced at the business level when adding a new employee.
+</p>
+
+<a id="crud-rule-no-email-password-update"></a>
+<p>
+⓶ Updating existing employee records does not include the <code>email</code> and <code>password</code> columns. If they are present in the submitted data, they are simply ignored. This means we cannot update <code>employees.email</code> and <code>employees.password</code> via the front end.
+</p>
+
+<a id="crud-rule-update-own-details"></a>
+<p>
+⓷ Logged-in users with <code>user:write</code> scope can update their own record. The logged-in user number must match the submitted user number.
+</p>
+
+<a id="crud-rule-admin-update-create"></a>
+<p>
+⓸ Logged-in users with <code>admin:write</code> scope can update existing employee records and also create new employee records.
+</p>
+
+<a id="crud-rule-db-update-insert"></a>
+<p>
+⓹ Please recall from the 
+<a href="https://behainguyen.wordpress.com/2024/08/04/python-fastapi-enabling-database-support/" 
+title="Python FastAPI: Enabling Database Support" target="_blank">seventh post</a> 
+that the business layer determines if the submitted data is for updating existing records or inserting new records. <strong>In hindsight, this point was not made very clear in the mentioned post</strong>.
+</p>
+
+<ul>
+<li style="margin-top:10px;">
+The <code>employees</code> table gets <strong>updated</strong> when the submitted 
+data has a value for the <code>emp_no</code> column; <code>email</code> and <code>password</code> are ignored even if they are in the submitted data.
+</li>
+
+<li style="margin-top:10px;">
+<strong>Inserting</strong> a new record takes place when the submitted data has 
+no value for the <code>emp_no</code> column; <code>email</code> and <code>password</code> are required.
+</li>
+</ul>
+
+<a id="new-emp-routes"></a>
+<p>
+❹ The table below lists information on the new routes that we are going to implement:
+</p>
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><td>Method</td><td>Scopes</td><td>Route</td><td>Response</td></tr><tr><td>GET</td><td>admin:read</td><td>/emp/search</td><td>HTML</td></tr><tr><td>GET, POST</td><td>admin:read</td><td>/emp/search/{partial-last-name}/{partial-first-name}</td><td>HTML, JSON</td></tr><tr><td>GET</td><td>admin:read</td><td>/emp/admin-get-update/{emp_no}</td><td>HTML, JSON</td></tr><tr><td>GET</td><td>user:read</td><td>/emp/own-get-update/{emp_no}</td><td>HTML, JSON</td></tr><tr><td>POST</td><td>admin:write</td><td>/emp/admin-save</td><td>JSON</td></tr><tr><td>POST</td><td>user:write</td><td>/emp/user-save</td><td>JSON</td></tr><tr><td>GET</td><td>admin:write</td><td>/emp/new</td><td>HTML</td></tr></tbody></table></figure>
+
+<p>
+Let's describe each of these endpoints. 
+</p>
+
+<ol>
+<li style="margin-top:10px;">
+<code>/emp/search</code>: Get the employee search form.
+</li>
+
+<li style="margin-top:10px;">
+<code>/emp/search/{partial-last-name}/{partial-first-name}</code>: Perform the employee search based on partial last name and partial first name.
+</li>
+
+<li style="margin-top:10px;">
+<code>/emp/admin-get-update/{emp_no}</code>: A logged-in user who potentially  
+has the <code>admin:write</code> scope, attempts to retrieve an employee record 
+for editing. The path parameter <code>/{emp_no}</code> identifies the employee. 
+The response is either an HTML page or a JSON object. 💥 This route only requires 
+the <code>admin:read</code> scope because retrieving the data means reading, not 
+yet writing or updating.
+</li>
+
+<li style="margin-top:10px;">
+<p>
+<code>/emp/own-get-update/{emp_no}</code>: A logged-in user who potentially 
+has the <code>user:write</code> scope, 
+attempts to retrieve their own record for editing. 
+The path parameter <code>/{emp_no}</code> identifies the employee. 
+The response is either an HTML page or a JSON object. 
+💥 This route only requires the <code>user:read</code> scope because retrieving the data means reading, not yet writing or updating.
+</p>
+
+<p>
+This route checks that the value of the path parameter <code>/{emp_no}</code> 
+matches the logged-in user number; otherwise, the request is rejected with an error response, 
+even if the logged-in user has the <code>admin:read</code> scope.
+</p>
+</li>
+
+<li style="margin-top:10px;">
+<code>/emp/admin-save</code>: A logged-in user attempts to <strong>update</strong> or 
+<strong>insert</strong> employee records. This endpoint requires the 
+<code>admin:write</code> scope.
+</li>
+
+<li style="margin-top:10px;">
+<p>
+<code>/emp/user-save</code>: A logged-in user attempts to <strong>update</strong> their own details.
+This route checks that the value of the submitted parameter <code>empNo</code> 
+matches the logged-in user number; otherwise, the request is rejected with an 
+error response, even if the logged-in user has the <code>user:write</code> scope.
+</p>
+</li>
+
+<li style="margin-top:10px;">
+<code>/emp/new</code>: Get the add new employee form.
+</li>
+</ol>
+
+<a id="code-refactorings"></a>
+<p>
+❺ In this section, we discuss the code changes, which are a bit involved.
+</p>
+
+<a id="code-refactoring-pyproject"></a>
+<p>
+⓵ The 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/pyproject.toml#L30-L31" 
+title="The pyproject.toml file" target="_blank"><code>pyproject.toml</code></a> file 
+now includes two new packages: <a href="https://pypi.org/project/python-multipart/" 
+title="python-multipart" target="_blank">python-multipart</a> and 
+<a href="https://pypi.org/project/email-validator/" 
+title="email-validator" target="_blank">email-validator</a>. I have recently 
+installed <code>Ubuntu 24.04.1 LTS (Noble Numbat)</code> and <code>Python 3.13.0</code>, 
+and the application installation requires these two packages. I must have had these two available in the previous environment without realising it.
+</p>
+
+<a id="code-refactoring-login-redirect"></a>
+<p>
+⓶ Using custom exception handler to manage redirecting to login page. Principal references for this refactoring:
+</p>
+
+<ol>
+<li style="margin-top:10px;">
+<a href="https://stackoverflow.com/a/76887329" 
+title="How to redirect to login in FastAPI" target="_blank">How to redirect to login in FastAPI</a>
+</li>
+<li style="margin-top:10px;">
+<a href="https://fastapi.tiangolo.com/tutorial/handling-errors/#install-custom-exception-handlers" 
+title="Install custom exception handlers" target="_blank">FastAPI Install custom exception handlers</a>.
+</li>
+</ol>	
+
+<p>
+💥 This implementation renders the method 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/main/src/fastapi_learning/controllers/__init__.py#L112-L116" 
+title="def is_logged_in(...)" target="_blank">def is_logged_in(...)</a> obsolete. 
+However, we will not refactor this part of the code just yet. We will do so in a later post.
+</p>
+
+<p>
+● The new <a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/required_login.py" 
+title="The controllers/required_login.py module" 
+target="_blank"><code>controllers/required_login.py</code></a> module 
+implements the method <code>get_logged_in_user(...)</code>, which is the 
+<a href="https://fastapi.tiangolo.com/reference/dependencies/#depends" 
+title="Depends()" target="_blank"><code>Depends()</code></a> callable for endpoint handlers. 
+This method raises the custom exception <code>RequiresLogin</code> if 
+the request is not 
+<a href="https://behainguyen.wordpress.com/2024/01/28/rust-simple-actix-web-email-password-login-and-request-authentication-using-middleware/#definition-authenticated-session" 
+title="authenticated session" target="_blank"><code>authenticated</code></a>. 
+If the request authentication is successful, it performs a database query to read the current logged-in user information. Since querying the database is expensive, we could refactor it so that all user information comes from the token payload.
+</p>
+
+<p>
+The method <code>get_logged_in_user(...)</code> is a variation of the existing method 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py#L57-L86" 
+title="get_current_user(...)" target="_blank"><code>get_current_user(...)</code></a>. 
+However, they have different responsibilities.
+</p>
+
+<p>
+● In the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/main.py#L109-L113" 
+title="The main.py module" target="_blank"><code>main.py</code></a> module, we 
+install the exception handler to catch the <code>RequiresLogin</code> exception and redirect as follows: 
+</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">109
+110
+111
+112
+113
+</pre></td><td class="code"><pre><span class="c1"># Redirect to login using custom exception handlers.
+# See https://stackoverflow.com/a/76887329
+</span><span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">RequiresLogin</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">requires_login</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="nb">Exception</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">RedirectResponse</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s">'/auth/login?state=2'</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<p>
+In endpoint handler methods, we call the callable <code>get_logged_in_user(...)</code> as follows: 
+</p>
+
+```python
+@router.get("/own-get-update/{emp_no}")
+async def user_update(request: Request, emp_no: str,
+                      user = Depends(get_logged_in_user),
+                      response = Security(get_employee_to_update, scopes=["user:read"])):
+```
+
+<a id="code-refactoring-login-redirect-retrofit"></a>
+<p>
+We will retrofit this into endpoint handler methods in the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py" 
+title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a>
+and 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py" 
+title="The controllers/auth.py module" target="_blank"><code>controllers/auth.py</code></a>
+modules in the next revision.
+</p>
+
+<a id="code-refactoring-token-decoding"></a>
+<p>
+⓷ Added a new generic 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/__init__.py#L67-L100" 
+title="The controllers/__init__.py module" 
+target="_blank"><code>async def verify_user_scopes(...)</code></a> method to manage user 
+scopes verification. In the next revision, we might refactor endpoint handler methods in the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py" 
+title="The controllers/auth.py module" target="_blank"><code>controllers/auth.py</code></a> 
+module and the  
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py" 
+title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a> 
+module to use this new method as well.
+</p>
+
+<a id="code-refactoring-employee"></a>
+<p>
+⓸ The code around the <code>employees</code> table requires refactoring to support new functionalities. We discuss these changes in this section.
+</p>
+
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑴</span> In the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/models/employees.py" 
+title="The models/employees.py module" target="_blank"><code>models/employees.py</code></a> 
+module, we added some new database query functions. They are mostly one-liners. The associated 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/tests/unit/test_employees.py" 
+title="The tests/unit/test_employees.py module" 
+target="_blank"><code>tests/unit/test_employees.py</code></a> module 
+has also been refactored to include tests for the new methods.
+</p>
+
+<a id="code-refactoring-employee-number"></a>
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑵</span> As apparent from 
+<a href="#new-emp-routes">this earlier section</a>, the new functionalities require the user number of the logged-in user. The following changes were required:
+</p>
+
+<p>
+● In the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/__init__.py#L53" 
+title="The src/fastapi_learning/__init__.py module" 
+target="_blank"><code>TokenData(BaseModel)</code></a> class, we added 
+a new field <code>user_number: int | None = None</code>.
+</p>
+
+<p>
+The JWT-related code was updated to include this <code>user_number: int</code> value.
+</p>
+
+<p>
+● In the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py#L121-L201" 
+title="The controllers/auth.py module" 
+target="_blank"><code>async def login(...)</code></a> method, 
+the <code>user number</code> is passed to the token payload after logging in successfully: 
+</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">194
+195
+196
+</pre></td><td class="code"><pre>    <span class="n">access_token</span> <span class="o">=</span> <span class="n">create_access_token</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s">'sub'</span><span class="p">:</span> <span class="n">op_status</span><span class="p">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">'email'</span><span class="p">],</span>
+                                             <span class="s">'emp_no'</span><span class="p">:</span> <span class="n">op_status</span><span class="p">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">'emp_no'</span><span class="p">],</span>
+                                             <span class="s">'scopes'</span><span class="p">:</span> <span class="n">op_status</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">scopes</span><span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<p>
+● The home page also requires the logged-in 
+<code>user number</code>. The helper method 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py#L87-L102" 
+title="The controllers/auth.py module" 
+target="_blank"><code>def __home_page(...)</code></a> 
+was refactored to include the <code>user number</code> in the page context data: 
+</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">97
+</pre></td><td class="code"><pre>        <span class="n">data</span><span class="p">.</span><span class="n">update</span><span class="p">({</span><span class="s">"user_number"</span><span class="p">:</span> <span class="n">token_data</span><span class="p">.</span><span class="n">user_number</span><span class="p">,</span> <span class="s">"user_scopes"</span><span class="p">:</span> <span class="n">token_data</span><span class="p">.</span><span class="n">scopes</span><span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<p>
+Finally, when decoding a JWT, the value of the <code>user number</code> 
+is copied into the result 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/__init__.py#L53" 
+title="The src/fastapi_learning/__init__.py module" 
+target="_blank"><code>TokenData(BaseModel)</code></a>'s 
+new field <code>user_number: int</code>. The method 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/common/jwt_utils.py#L29-L51" 
+title="The common/jwt_utils.py module" 
+target="_blank"><code>def decode_access_token(...)</code></a>
+was refactored with the following addition: 
+</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">44
+45
+46
+47
+48
+</pre></td><td class="code"><pre>        <span class="n">usernumber</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">payload</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"emp_no"</span><span class="p">))</span> <span class="k">if</span> <span class="s">'emp_no'</span> <span class="ow">in</span> <span class="n">payload</span> <span class="k">else</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">usernumber</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">credentials_exception</span>
+        
+        <span class="k">return</span> <span class="n">TokenData</span><span class="p">(</span><span class="n">user_name</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">user_number</span><span class="o">=</span><span class="n">usernumber</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="n">payload</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"scopes"</span><span class="p">,</span> <span class="p">[]))</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<a id="code-refactoring-employee-validation"></a>
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑶</span>
+The 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_validation.py" 
+title="The businesses/employees_validation.py module" 
+target="_blank"><code>businesses/employees_validation.py</code></a> module 
+includes two new validation forms:  
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_validation.py#L91-L124" 
+title="The businesses/employees_validation.py module" 
+target="_blank"><code>UpdateEmployeeForm</code> and <code>AddEmployeeForm</code></a>.
+The implementations of these two new forms are based on the
+<a href="#crud-rule-db-update-insert">CRUD rules discussed earlier</a>.
+</p>
+
+<p>
+The new associated test module 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/tests/business/test_employees_validation.py" 
+title="The tests/business/test_employees_validation.py module " 
+target="_blank"><code>tests/business/test_employees_validation.py</code></a> 
+should have sufficient tests to cover all possible data validation scenarios for the forms.
+</p>
+
+<a id="code-refactoring-employee-mgr"></a>
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑷</span>
+As anticipated, there were a number of changes in the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_mgr.py" 
+title="The businesses/employees_mgr.py module" 
+target="_blank"><code>businesses/employees_mgr.py</code></a> module:
+</p>
+
+<a id="code-refactoring-employee-mgr-mock-user-list"></a>
+<p>
+● To sufficiently cover all permission scenarios, we added two more entries to the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_mgr.py#L49-L79" 
+title="The businesses/employees_mgr.py module" 
+target="_blank"><code>MOCK_USER_SCOPES</code></a> list:
+</p>
+
+<ol>
+<li style="margin-top:10px;">
+<strong>User</strong> <code>weijing.showalter.67000@gmail.com</code>, 
+<strong>scope</strong>: <code>admin:read</code>. This user can search and read other users' information.
+</li>
+
+<li style="margin-top:10px;">
+<strong>User</strong> <code>nidapan.samarati.262556@gmail.com</code>, 
+<strong>scope</strong>: <code>user:read</code>. This user can only read their own information; they can't update their own details.
+</li>
+</ol>
+
+<p>
+Please refer to 
+<a href="https://behainguyen.wordpress.com/2024/10/08/python-fastapi-implementing-oauth2-scopes-part-01/#impl-refactoring-emp-mgr-mock-user-list" 
+title="Python FastAPI: Implementing OAuth2 Scopes Part 01" target="_blank">this section</a> 
+of an earlier post for the first discussion on the mock user list.
+</p>
+
+<a id="code-refactoring-employee-mgr-db-functions"></a>
+<p>
+● Added two more database query methods: 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_mgr.py#L138-L150" 
+title="The businesses/employees_mgr.py module" 
+target="_blank"><code>def select_by_partial_last_name_and_first_name(...)</code></a> 
+and 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_mgr.py#L152-L162" 
+title="The businesses/employees_mgr.py module" 
+target="_blank"><code>def select_by_employee_number(...)</code></a>.
+</p>
+
+<a id="code-refactoring-employee-mgr-crud-functions"></a>
+<p>
+● Implemented the required override methods to 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/businesses/employees_mgr.py#L225-L389" 
+title="The businesses/employees_mgr.py module" 
+target="_blank">capture, validate, update, and insert</a> data. 
+These methods are quite involved, but they should be readable, as they are quite short and each has a single distinct responsibility.
+</p>
+
+<p>
+👉 The associated test module 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/tests/business/test_employees_mgr.py" 
+title="The tests/business/test_employees_mgr.py module" 
+target="_blank"><code>tests/business/test_employees_mgr.py</code></a> 
+also had more test methods added to cover tests for the new implementations. The test methods should also help in understanding the code properly.
+</p>
+
+<a id="code-refactoring-employee-admin"></a>
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑸</span> Finally, the new 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/employees_admin.py" 
+title="The controllers/employees_admin.py module"
+target="_blank"><code>controllers/employees_admin.py</code></a> module, which 
+implements all <a href="#new-emp-routes">new routes</a> as described previously. Let's 
+take a look at the endpoint handler code for the route <code>/emp/admin-save</code>:
+</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+</pre></td><td class="code"><pre><span class="k">async</span> <span class="k">def</span> <span class="nf">do_save</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> 
+                  <span class="n">security_scopes</span><span class="p">:</span> <span class="n">SecurityScopes</span><span class="p">,</span>
+                  <span class="n">token</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)]):</span>
+    
+    <span class="n">res</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">exception</span> <span class="o">=</span> <span class="k">await</span> <span class="n">verify_user_scopes</span><span class="p">(</span><span class="n">security_scopes</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">INVALID_PERMISSIONS_MSG</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_500_status</span><span class="p">(</span><span class="n">exception</span><span class="p">.</span><span class="n">detail</span><span class="p">).</span><span class="n">as_dict</span><span class="p">()</span>
+
+    <span class="n">form</span> <span class="o">=</span> <span class="k">await</span> <span class="n">request</span><span class="p">.</span><span class="n">form</span><span class="p">()</span>    
+    <span class="k">return</span> <span class="n">EmployeesManager</span><span class="p">().</span><span class="n">write_to_database</span><span class="p">(</span><span class="n">form</span><span class="p">.</span><span class="n">_dict</span><span class="p">).</span><span class="n">as_dict</span><span class="p">()</span>
+    
+<span class="o">@</span><span class="n">router</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s">"/admin-save"</span><span class="p">,</span> <span class="n">response_class</span><span class="o">=</span><span class="n">JSONResponse</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">admin_save</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+                     <span class="n">user</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_logged_in_user</span><span class="p">),</span>
+                     <span class="n">response</span> <span class="o">=</span> <span class="n">Security</span><span class="p">(</span><span class="n">do_save</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="s">"admin:write"</span><span class="p">])):</span>
+    
+    <span class="s">""" 
+    Route: https://0.0.0.0:5000/emp/admin-save
+
+    This method is for users with 'admin:write' to write new employee records,
+    or to update existing records.
+
+    empNo can be blank, None or completely absent. Fields 'email' and 
+    'password' must have values.
+    """</span>
+
+    <span class="k">return</span> <span class="n">response</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<p>
+The structure of the code should be familiar to us. I would like to note the following points:
+</p>
+
+<p>
+● <code>user = Depends(get_logged_in_user)</code> is the custom exception handler 
+to manage login redirection, which we have 
+<a href="#code-refactoring-login-redirect">discussed earlier</a>.
+</p>
+
+<p>
+● We use <code>response = Security(do_save, scopes=["admin:write"])</code> 
+instead of the already familiar 
+<code>response = Annotated[JSONResponse, Security(do_save, scopes=["admin:write"])]</code>.
+For an explanation, please refer to this GitHub issue: 
+<a href="https://github.com/fastapi/fastapi/issues/10127"
+title="Cannot use Response type hint as dependency annotation #10127" 
+target="_blank">Cannot use Response type hint as dependency annotation #10127</a>.
+</p>
+
+<a id="code-refactoring-employee-json-error-response"></a>
+<p>
+● Note that when an exception or an error occurs, for JSON response, we now return a 
+<a href="https://bh-apistatus.readthedocs.io/en/latest/result-status.html#bh_apistatus.result_status.ResultStatus" 
+title="bh_apistatus.result_status.ResultStatus class" target="_blank"><code>ResultStatus</code></a>
+class via <code>return make_500_status(exception.detail).as_dict()</code>.
+</p>
+
+<p>
+This has always been the intention since the start of this learning application. 
+However, I have failed to realise this implementation in the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py" 
+title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a>
+and 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py" 
+title="The controllers/auth.py module" target="_blank"><code>controllers/auth.py</code></a>
+modules. We will refactor this in the next revision.
+</p>
+
+<p>
+👉 The associated test module 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/tests/integration/test_employees_itgt.py" 
+title="The tests/integration/test_employees_itgt.py module" 
+target="_blank"><code>tests/integration/test_employees_itgt.py</code></a> 
+has more than twenty (20) coverage tests for the <a href="#new-emp-routes">new routes</a>. 
+These test methods should aid in understanding the code, too.
+</p>
+
+<a id="code-refactoring-ui"></a>
+<p>
+⓹ Finally, refactoring of the front-end code or UI:
+</p>
+
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑴</span>
+Added a new application JavaScript file: 
+<a href="https://github.com/behai-nguyen/fastapi_learning/tree/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/static/js/application.js" 
+title="The application JS script file" 
+target="_blank"><code>static/js/application.js</code></a>.
+</p>
+
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑵</span>
+The base HTML template 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/templates/base.html" 
+title="The base HTML template" 
+target="_blank"><code>templates/base.html</code></a>
+now references more JavaScript files from 
+<a href="https://github.com/behai-nguyen/js" 
+title="Javascript library" target="_blank">this GitHub repository</a>.
+In a production deployment, we don't reference this many JavaScript or CSS files as it would slow down the loading of the pages. Instead, we would minify all files into a single large JavaScript file and a single large CSS file, eliminating network round trips. I have discussed minification in the post <a href="https://behainguyen.wordpress.com/2022/11/06/javascript-and-css-minification/" title="JavaScript and CSS minification" target="_blank">JavaScript and CSS minification</a>
+</p>
+
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑶</span>
+The home page template 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/templates/auth/home.html" 
+title="The HTML home page" 
+target="_blank"><code>templates/auth/home.html</code></a> 
+has also received significant refactoring. As a result of new UI elements being added, 
+the UI elements' state calculations were changed quite significantly compared to the 
+<a href="https://behainguyen.wordpress.com/2024/10/19/python-fastapi-oauth2-scopes-part-02-ui-elements-and-user-assigned-scopes/#code-refactoring-objective-home-page" 
+title="Python FastAPI: OAuth2 Scopes Part 02 - UI Elements and User-Assigned Scopes" 
+target="_blank">previous revision</a>. The current code is: 
+</p>
+
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+</pre></td><td class="code"><pre>{&#37; set user_read_scope = ['user:read'] &#37;}
+{&#37; set user_write_scope = ['user:write'] &#37;}
+{&#37; set admin_read_scope = ['admin:read'] &#37;}
+{&#37; set admin_write_scope = ['admin:write'] &#37;}
+
+{&#37; set user_read_disabled_str = '' &#37;}
+{&#37; set user_write_disabled_str = '' &#37;}
+{&#37; set admin_read_disabled_str = '' &#37;}
+{&#37; set admin_write_disabled_str = '' &#37;}
+
+{&#37; if not enable_no_scopes_ui() &#37;}
+{&#37;     if not has_required_scopes(user_read_scope, data['user_scopes']) &#37;}
+{&#37;         set user_read_disabled_str = 'disabled' &#37;}
+{&#37;     endif &#37;}
+
+{&#37;     if not has_required_scopes(user_write_scope, data['user_scopes']) &#37;}
+{&#37;         set user_write_disabled_str = 'disabled' &#37;}
+{&#37;     endif &#37;}
+
+{&#37;     if not has_required_scopes(admin_read_scope, data['user_scopes']) &#37;}
+{&#37;         set admin_read_disabled_str = 'disabled' &#37;}
+{&#37;     endif &#37;}
+
+{&#37;     if not has_required_scopes(admin_write_scope, data['user_scopes']) &#37;}
+{&#37;         set admin_write_disabled_str = 'disabled' &#37;}
+{&#37;     endif &#37;}
+{&#37; endif &#37;}
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<p>
+Basically, the page needs to know if the logged-in user has the <code>user:read</code>, <code>user:write</code>, <code>admin:read</code>, and <code>admin:write</code> scopes. The <a href="https://behainguyen.wordpress.com/2024/10/19/python-fastapi-oauth2-scopes-part-02-ui-elements-and-user-assigned-scopes/#code-refactoring-objective-home-page" title="Python FastAPI: OAuth2 Scopes Part 02 - UI Elements and User-Assigned Scopes" target="_blank">previous revision</a> needed only <code>user:read</code>.
+</p>
+
+<p>
+<span style="font-size:1.5em;font-weight:bold;">⑷</span>
+Finally, the four new employee pages 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/templates/emp" 
+title="The new employee HTML pages" 
+target="_blank"><code>templates/emp/*.html</code></a>. They should be self-explanatory, so we will not go into detailed descriptions.
+</p>
+
+<a id="new-ui-elements"></a>
+<p>
+❻ The following screenshots show some new UI added in this installment:
+</p>
+
+{% include image-gallery.html list=page.gallery-image-list %}
+<br/>
+
+<p style="clear:both;"></p>
+
+<a id="concluding-remarks"></a>
+<p>
+❼ We conclude this post here. I hope we are not overwhelmed by the length of this post. Before finishing off, I would like to recap the following to-do items:
+</p>
+
+<ol>
+<li style="margin-top:10px;">
+Retrofit the custom exception handler to manage login redirection, i.e., use the method 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/required_login.py#L31-L48" 
+title="The controllers/required_login.py module" 
+target="_blank"><code>async def get_logged_in_user(...)</code></a> 
+in endpoint handler methods in the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py" 
+title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a>
+and 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py" 
+title="The controllers/auth.py module" target="_blank"><code>controllers/auth.py</code></a> 
+modules. This point has also been <a href="#code-refactoring-login-redirect-retrofit">discussed in detail earlier</a>.
+</li>
+
+<li style="margin-top:10px;">
+As <a href="#code-refactoring-token-decoding">discussed previously</a>, we might also retrofit the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/__init__.py#L67-L100" 
+title="The controllers/__init__.py module" target="_blank"><code>async def verify_user_scopes(...)</code></a> 
+method to endpoint handler methods in the 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py" 
+title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a> 
+and 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py" 
+title="The controllers/auth.py module" target="_blank"><code>controllers/auth.py</code></a> 
+modules.
+</li>
+
+<li style="margin-top:10px;">
+<a href="#code-refactoring-employee-json-error-response">As discussed</a>, 
+when an error or exception occurs, and the requested response is JSON, 
+existing endpoint handlers in the 
+
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/admin.py" 
+title="The controllers/admin.py module" target="_blank"><code>controllers/admin.py</code></a> 
+and 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/b31421129c5bc75f822a5c2049e764ce1d12dbe9/src/fastapi_learning/controllers/auth.py" 
+title="The controllers/auth.py module" target="_blank"><code>controllers/auth.py</code></a> 
+modules should return a 
+<a href="https://bh-apistatus.readthedocs.io/en/latest/result-status.html#bh_apistatus.result_status.ResultStatus" 
+title="bh_apistatus.result_status.ResultStatus class" target="_blank"><code>ResultStatus</code></a> 
+class via calling the 
+<a href="https://bh-apistatus.readthedocs.io/en/latest/result-status.html#bh_apistatus.result_status.make_500_status" 
+title="The bh_apistatus.result_status.make_500_status(...) method" 
+target="_blank"><code>make_500_status(...)</code></a> method.
+</li>
+</ol>
+
+<p>
+Thank you for reading. I hope you find the information in this post useful. Stay safe, as always.
+</p>
+
+<p>✿✿✿</p>
+
+<p>
+Feature image source:
+</p>
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.python.org/downloads/release/python-3124/" target="_blank">https://www.python.org/downloads/release/python-3124/</a>
+</li>
+<li>
+<a href="https://fastapi.tiangolo.com/" target="_blank">https://fastapi.tiangolo.com/</a>
+</li>
+<li>
+<a href="https://1000logos.net/download-image/" target="_blank">https://1000logos.net/download-image/</a>
+</li>
+<li>
+<a href="https://www.logo.wine/logo/MySQL" target="_blank">https://www.logo.wine/logo/MySQL</a>
+</li>
+<li>
+<a href="https://icon-icons.com/download/170836/PNG/512/" target="_blank">https://icon-icons.com/download/170836/PNG/512/</a>
+</li>
+<li>
+<a href="https://www.stickpng.com/img/icons-logos-emojis/tech-companies/mariadb-full-logo" target="_blank">https://www.stickpng.com/img/icons-logos-emojis/tech-companies/mariadb-full-logo</a>
+</li>
+</ul>
+
+<h3>
+🐍 <a href="https://github.com/behai-nguyen/fastapi_learning" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
