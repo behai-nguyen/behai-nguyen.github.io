@@ -309,7 +309,7 @@ title="Install custom exception handlers" target="_blank">FastAPI Install custom
 
 <p>
 💥 This implementation renders the method 
-<a href="https://github.com/behai-nguyen/fastapi_learning/blob/main/src/fastapi_learning/controllers/__init__.py#L112-L116" 
+<a href="https://github.com/behai-nguyen/fastapi_learning/blob/7f7fc6e5e39d595e94f35d26105226365165d3fc/src/fastapi_learning/controllers/__init__.py#L112-L116" 
 title="def is_logged_in(...)" target="_blank">def is_logged_in(...)</a> obsolete. 
 However, we will not refactor this part of the code just yet. We will do so in a later post.
 </p>
