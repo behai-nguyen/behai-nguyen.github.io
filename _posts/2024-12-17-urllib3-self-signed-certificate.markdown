@@ -44,6 +44,22 @@ and
 Under the hood, the former uses the latter. I chose <code>urllib3</code> 
 as I don't see <code>Requests</code> offering any significant advantages. 
 
+<h2>Updated on 02/01/2025 -- Starts</h2>
+
+> ...as I don't see <code>Requests</code> offering any significant advantages. 
+
+I was wrong. The <code>Requests</code> library offers a significant advantage.
+I have found that, on the server, if the endpoint handler redirects to another route with cookies, 
+using the <code>urllib3</code> library, the server will not handle cookies correctly.
+We need to enable cookies ourselves, which I have not been able to figure out how to do. 
+The <code>Requests</code> library handles cookies out of the box.
+
+Despite my erroneous assessment, the discussions on <code>urllib3</code> 
+in this post are still relevant.
+
+<h2>Updated on 02/01/2025 -- Ends</h2>
+
+
 To install the <a href="https://pypi.org/project/urllib3/" title="The urllib3 library" target="_blank">urllib3</a> 
 library in an active <code>venv</code> virtual environment, run the following command: 
 
