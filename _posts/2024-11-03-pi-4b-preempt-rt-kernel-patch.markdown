@@ -66,6 +66,10 @@ Linux picnc 6.6.59-rt45-v8-behai-rt-build+ #1 SMP PREEMPT_RT Sat Nov  2 10:20:46
 This indicates that the token <strong><code>PREEMPT_RT</code></strong> is present in the output. <strong>Natively</strong> in this instance means that we patch and build the kernel using the very Pi 4B on which the newly built kernel is installed.
 </em>
 
+<h3>
+🐧 <a href="https://github.com/behai-nguyen/linuxcnc" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![125-feature-image.jpg](https://behainguyen.wordpress.com/wp-content/uploads/2024/11/125-feature-image.jpg) |
 |:--:|
 | *Raspberry Pi 4B: Natively Build a 64 Bit Fully Preemptible Kernel (Real-Time) with Desktop* |
@@ -445,3 +449,7 @@ Feature image source:
 <a href="https://www.instructables.com/Easy-Raspberry-Pi-Based-ScreensaverSlideshow-for-E/" target="_blank">https://www.instructables.com/Easy-Raspberry-Pi-Based-ScreensaverSlideshow-for-E/</a>
 </li>
 </ul>
+
+<h3>
+🐧 <a href="https://github.com/behai-nguyen/linuxcnc" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
