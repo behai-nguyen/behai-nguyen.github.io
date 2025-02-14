@@ -30,11 +30,15 @@ tags:
 I conducted the LinuxCNC Max Jitter or Latency Test on my Raspberry Pi 4 Model B Rev 1.5, equipped with 8GB of RAM and running Debian GNU/Linux 12 (Bookworm) 6.12.11. The results are rather erratic, and I'm not sure how to interpret them. In this post, I present the results and describe the tests.
 </em>
 
+<h3>
+🐧 <a href="https://github.com/behai-nguyen/linuxcnc" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
 | ![132-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/02/132-feature-image.png) |
 |:--:|
 | *Raspberry Pi 4B: LinuxCNC Max Jitter or Latency Test* |
 
-I used the following official image:
+I use the following official image:
 <a href="https://linuxcnc.org/iso/rpi-4-debian-bookworm-6.12.11-arm64-ext4-2025-01-27-0404.img.xz" 
 title="https://linuxcnc.org/iso/rpi-4-debian-bookworm-6.12.11-arm64-ext4-2025-01-27-0404.img.xz" 
 target="_blank">https://linuxcnc.org/iso/rpi-4-debian-bookworm-6.12.11-arm64-ext4-2025-01-27-0404.img.xz</a>.
@@ -285,3 +289,7 @@ Feature image source:
 <a href="https://forum.linuxcnc.org/show-your-stuff/32672-linuxcnc-logo?start=20#gallery-6" target="_blank">https://forum.linuxcnc.org/show-your-stuff/32672-linuxcnc-logo?start=20#gallery-6</a>
 </li>
 </ul>
+
+<h3>
+🐧 <a href="https://github.com/behai-nguyen/linuxcnc" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
