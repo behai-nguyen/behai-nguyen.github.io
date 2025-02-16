@@ -4,22 +4,6 @@ title: "Raspberry Pi 4B LinuxCNC: Initial Setup for the Mesa 7I96S Ethernet Moti
 
 description: In this post, I describe the initial setup for the Mesa 7I96S Ethernet motion control STEP/IO Step & Dir plus I/O card. The setup includes selecting the power supply and configuring the network IP address. 
 
-custom-css-list:
-    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
-
-custom-javascript-list:
-    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
-    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
-
-gallery-image-list-1:
-    - "https://behainguyen.wordpress.com/wp-content/uploads/2025/02/mdr-10-5-ac-input.jpg"
-
-gallery-image-list-2:
-    - "https://behainguyen.wordpress.com/wp-content/uploads/2025/02/mesa-7i96s-power-connection.jpg"
-
-gallery-image-list-3:
-    - "https://behainguyen.wordpress.com/wp-content/uploads/2025/01/mesa_7i96s_w5_up.jpg"
-
 tags:
 - Raspberry
 - 4B
