@@ -51,8 +51,7 @@ This post is a continuation of the <a href="https://github.com/behai-nguyen/linu
 ❶ I chose to use a closed-loop stepper motor driver and motor. The driver is a 
 <a href="https://www.omc-stepperonline.com/closed-loop-stepper-driver-v4-1-0-8-0a-24-48vdc-for-nema-17-23-24-stepper-motor-cl57t-v41" 
 title="CL57T Closed-Loop Stepper Driver" target="_blank">CL57T</a>. 
-The accompanying printed manual states it is version <code>4.1</code> (CL57T-V41),
-but mine came with no free debugging cable. 
+The accompanying printed manual states it is version <code>4.1</code> (CL57T-V41).
 I can't find the PDF manual for version <code>4.1</code>, only for 
 <a href="https://www.omc-stepperonline.com/download/CL57T_V4.0.pdf"
 title="CL57T_V4.0.pdf" target="_blank">version 4.0</a>.
