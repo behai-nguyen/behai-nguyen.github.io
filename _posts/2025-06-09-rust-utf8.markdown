@@ -1,0 +1,287 @@
+---
+layout: post
+title: "Rust: Working with UTF-8 Text"
+
+description: Extracting a specific UTF-8 substring from text requires accurate byte indexes for the starting and ending characters. I recently encountered this challenge and am sharing my approach to resolving it. While I am unsure if this is the most optimal solution, it serves my needs for now.
+
+tags: 
+- Rust
+- String
+- UTF-8
+- Slice
+- Substring
+---
+
+<em>
+Extracting a specific UTF-8 substring from text requires accurate byte indexes for the starting and ending characters. I recently encountered this challenge and am sharing my approach to resolving it. While I am unsure if this is the most optimal solution, it serves my needs for now.
+</em>
+
+| ![138-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/06/138-feature-image.png) |
+|:--:|
+| *Rust: Working with UTF-8 Text* |
+
+<a id="example-one"></a>
+<p>
+❶ <strong>Understanding UTF-8 Character Counting in Rust</strong>
+</p>
+
+<p>
+UTF-8 characters are multibyte, meaning the total number of bytes in a UTF-8 string 
+is greater than the total number of characters. The  
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.len" 
+title="std String len() method" target="_blank">len()</a> 
+method returns the total number of bytes, whereas  
+<code>String</code>'s 
+<a href="https://doc.rust-lang.org/std/string/struct.String.html#method.chars" 
+title="std String chars() method" target="_blank">chars()</a>'s 
+<a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.count" 
+title="std Iterator method count()" target="_blank">count()</a> 
+returns the total number of characters.
+</p>
+
+<p>
+The <code>chars()</code> method provides an iterator over the characters in a string, and <code>count()</code> returns the total number of items in the iterator.
+</p>
+
+<p>
+The following example demonstrates these methods:
+</p>
+
+```rust
+fn main() {
+    let str = String::from("'This Autumn Will \
+        End' (秋の終わり): a poem by Yosano Akiko.");
+
+    let byte_count = str.len();
+    let char_count = str.chars().count();
+
+    println!("byte_count: {byte_count}");
+    println!("char_count: {char_count}");
+}
+```
+
+<p>
+In this example, the string contains 65 bytes (<code>byte_count</code>: <code>65</code>) 
+but only <strong>55 characters</strong> (<code>char_count</code>: <code>55</code>). 
+You can run this code in 
+<a href="https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=50130095ca7e0004e699839536b37f40" 
+title="Example 1 Rust Playground" target="_blank">Rust Playground</a>
+to see the output.
+</p>
+
+<a id="example-two"></a>
+<p>
+❷ <strong>Determining Byte Boundaries in a UTF-8 String</strong>
+</p>
+
+<p>
+The iterator  
+<a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.nth" 
+title="std Iterator nth() method" target="_blank">nth(usize)</a> 
+method returns a primitive type <a href="https://doc.rust-lang.org/std/primitive.char.html" 
+title="Primitive Type char" target="_blank">char</a> 
+at the specified index in a string, 
+while the <code>char</code> type's 
+<a href="https://doc.rust-lang.org/std/primitive.char.html#method.len_utf8" 
+title="Primitive Type char len_utf8() method" target="_blank">len_utf8()</a> 
+method provides the byte size of the character.
+</p>
+
+<p>
+By applying the methods discussed earlier, we can determine the byte boundaries of each character—whether ASCII or UTF-8—within a string. The example below illustrates this:
+</p>
+
+```rust
+fn main() {
+    let str = String::from("'This Autumn Will \
+        End' (秋の終わり): a poem by Yosano Akiko.");
+
+    let char_count = str.chars().count();
+    let mut total_byte_count: usize = 0;
+    
+    let mut current: usize = 0;
+    let mut char_slicing_index = 0;
+    
+    while current < char_count {
+        if let Some(c) = str.chars().nth(current) {
+            let byte_count = c.len_utf8();
+            
+            total_byte_count += byte_count;
+            
+            println!("{}. char: [{}], byte size: [{}], char slicing index: [{}], total byte count: [{}]", 
+                     current+1, c, byte_count, char_slicing_index, total_byte_count);
+                     
+            char_slicing_index += byte_count;
+        }
+        
+        current += 1;
+    }
+}
+```
+
+<p>
+Run this example in 
+<a href="https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=03ae2d92788f12e28dcd740df62baf3e" 
+title="Example 2 Rust Playground" target="_blank">Rust Playground</a> to observe its output.
+</p>
+
+<p>
+<strong>Sample Output (Shortened):</strong>
+</p>
+
+```
+1. char: ['], byte size: [1], char slicing index: [0], total byte count: [1]
+2. char: [T], byte size: [1], char slicing index: [1], total byte count: [2]
+...
+24. char: [(], byte size: [1], char slicing index: [23], total byte count: [24]
+25. char: [秋], byte size: [3], char slicing index: [24], total byte count: [27]
+26. char: [の], byte size: [3], char slicing index: [27], total byte count: [30]
+27. char: [終], byte size: [3], char slicing index: [30], total byte count: [33]
+28. char: [わ], byte size: [3], char slicing index: [33], total byte count: [36]
+29. char: [り], byte size: [3], char slicing index: [36], total byte count: [39]
+30. char: [)], byte size: [1], char slicing index: [39], total byte count: [40]
+...
+54. char: [o], byte size: [1], char slicing index: [63], total byte count: [64]
+55. char: [.], byte size: [1], char slicing index: [64], total byte count: [65]
+```
+
+<p>
+<strong>Explanation:</strong>
+</p>
+
+<p>
+The <code>char slicing index</code> represents the starting byte position of each character, while the <code>total byte count</code> indicates the ending position. Additionally, the <code>total byte count</code> accumulates the total number of bytes up to the current character.
+</p>
+
+<a id="example-three"></a>
+<p>
+❸ <strong>
+Extracting a Single Character Using 
+<a href="https://doc.rust-lang.org/book/ch08-02-strings.html#slicing-strings" 
+title="The Rust Book: Slicing Strings" target="_blank">String Slicing</a> in Rust
+</strong>
+</p>
+
+<p>
+In this example, we use the <code>char slicing index</code> and <code>total byte count</code> indexes to extract the second character of the string. The target character is <strong>T</strong>, which has a <code>char slicing index</code> of <code>1</code> and a <code>total byte count</code> of <code>2</code>:
+</p>
+
+```rust
+fn main() {
+    let str = String::from("'This Autumn Will \
+        End' (秋の終わり): a poem by Yosano Akiko.");
+
+    let substr = str[1..2].to_string();
+
+    println!("[{substr}]");
+}
+```
+
+<p>
+<a href="https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=ac6a6a0d577186d1a8b840de3a27b61f" 
+title="Example 3 Rust Playground" target="_blank">Run this example in Rust Playground</a>; 
+the output will be <code>[T]</code> as expected. 
+</p>
+
+<a id="example-four"></a>
+<p>
+❹ <strong>Extracting UTF-8 Substrings in Rust</strong>
+</p>
+
+<p>
+In this final example, we extract two specific substrings:
+</p>
+
+<ul>
+<li style="margin-top:10px;">
+<strong>The 5 Japanese characters</strong> (秋の終わり), which are true UTF-8 characters.
+
+    <ul>
+	    <li style="margin-top:10px;">
+		    <strong><code>char slicing index</code></strong>: <code>24</code>
+	    </li>
+
+	    <li style="margin-top:10px;">
+		    <strong><code>total byte count</code></strong>: <code>39</code>
+	    </li>
+    </ul>
+</li>
+
+<li style="margin-top:10px;">
+<strong>The second-to-last character</strong> (<code>o</code>): 
+	    <li style="margin-top:10px;">
+		    <strong><code>char slicing index</code></strong>: <code>63</code>
+	    </li>
+
+	    <li style="margin-top:10px;">
+		    <strong><code>total byte count</code></strong>: <code>64</code>
+	    </li>
+</li>
+</ul>	
+
+<p>
+The following Rust code demonstrates this:
+</p>
+
+```rust
+fn main() {
+    let str = String::from("'This Autumn Will \
+        End' (秋の終わり): a poem by Yosano Akiko.");
+
+    // The 5 Japanse characters: 秋の終わり
+    let substr = str[24..39].to_string();
+
+    println!("[{substr}]");
+
+    // The last o:
+    let substr = str[63..64].to_string();
+    
+    println!("[{substr}]");    
+}
+```
+
+<p>
+Run this example in 
+<a href="https://play.rust-lang.org/?version=stable&mode=debug&edition=2024&gist=a4d9e3a3777dac3ba0160b6f7256283c" 
+title="Example 4 Rust Playground" target="_blank">Rust Playground</a>, and the expected output will be:
+</p>
+
+```
+[秋の終わり]
+[o]
+```
+
+<a id="concluding-remarks"></a>
+<p>
+❺ So basically, we are keeping track of the byte boundaries of characters in a 
+string to extract desired substrings. I also looked into the 
+<code>String</code>'s 
+<a href="https://doc.rust-lang.org/beta/std/primitive.str.html#method.char_indices" 
+title="std String char_indices() method" target="_blank">char_indices()</a> 
+method while writing this post, but I haven’t yet figured out how it could be applied to this task.
+</p>
+
+<p>
+Thank you for reading. I hope you find this post helpful. Stay safe, as always.
+</p>
+
+<p>✿✿✿</p>
+
+<p>
+Feature image sources:
+</p>
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.rust-lang.org/" target="_blank">https://www.rust-lang.org/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+</ul>
