@@ -4,22 +4,6 @@ title: "Raspberry Pi 4B LinuxCNC: Wiring the Mesa 7I96S Card and a Contactor to 
 
 description: This post documents how to wire the Mesa 7I96S Ethernet motion control STEP/IO Step & Dir plus I/O card to a contactor, enabling the LinuxCNC application to switch a wood router (or grinder) on and off using G-code commands.
 
-custom-css-list:
-    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
-
-custom-javascript-list:
-    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
-    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
-
-gallery-image-list-1:
-    - "https://behainguyen.wordpress.com/wp-content/uploads/2025/06/contactor-no-terminal-led.png"
-
-gallery-image-list-2:
-    - "https://behainguyen.wordpress.com/wp-content/uploads/2025/06/contactor-switch-one-phase-load.png"
-
-gallery-image-list-3:
-    - "https://behainguyen.wordpress.com/wp-content/uploads/2025/06/contactor-to-mesa-7i96s-one-phase-load-01.png"
-
 tags:
 - Raspberry
 - 4B
@@ -177,8 +161,7 @@ Back in my undergraduate years—over two decades ago—I completed two semester
 
 After some Googling and a few wiring missteps, I was able to arrive at the correct setup, shown in the diagram below: 
 
-{% include image-gallery.html list=page.gallery-image-list-1 %}
-<br/>
+| ![contactor-no-terminal-led.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/06/contactor-no-terminal-led.png) |
 
 I'm using a standard LED, with a <strong>current-limiting resistor</strong> between 
 <strong>330Ω and 360Ω</strong>.
@@ -200,8 +183,7 @@ don’t have a router yet, I’m using a <strong>Dremel grinder</strong> for tes
 
 I followed the wiring shown in the diagram below: 
 
-{% include image-gallery.html list=page.gallery-image-list-2 %}
-<br/>
+| ![contactor-switch-one-phase-load.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/06/contactor-switch-one-phase-load.png) |
 
 💡 <strong>Important</strong>, I DID <strong>NOT</strong> cut into the grinder's main cable to access the <span style="color:#998378; font-weight:bold;">Live</span> wire. Instead, I used an extension cable with a male and female end for safe and reversible testing.
 
@@ -231,8 +213,7 @@ protection feature</strong>, which prevents it from being externally switched on
 
 After some extensive research (with help from AI!), I put together the following wiring diagram: 
 
-{% include image-gallery.html list=page.gallery-image-list-3 %}
-<br/>
+| ![contactor-to-mesa-7i96s-one-phase-load-01.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/06/contactor-to-mesa-7i96s-one-phase-load-01.png) |
 
 🙏 <strong>Note</strong>: For simplicity, I’ve omitted the load wiring in this diagram. It’s assumed that the load 
 circuit is still present and connected as shown in the <a href="#single-phase-load">previous</a> illustrations.
