@@ -1,0 +1,570 @@
+---
+layout: post
+title: "Rust: Multilingual PDFs — an Introductory Study"
+
+description: A “multilingual” PDF simply means a PDF document that supports displaying, copying, and pasting text in any Unicode-supported language. I’ve used several third-party libraries to generate multilingual PDF documents in previous jobs. I was under the impression that as long as we used the correct fonts, the text would render automatically—and so would copy and paste. But when I tried to create a multilingual PDF with Rust, I soon realized it’s not that simple! With help from ChatGPT and Copilot, we discovered that quite a bit of work is needed to get everything working. It’s not as simple as just embedding a font program in the PDF document. In this article, we’ll take an introductory look at creating a multilingual PDF document that includes both Chinese and Vietnamese text. The Rust code we’re writing runs on both Windows and Ubuntu.
+
+tags:
+- Rust
+- FFI
+- HarfBuzz
+- hb-shape
+- hb-subset
+- Unicode
+- font subset
+- PDF
+- multilingual
+---
+
+*A <em>“multilingual”</em> PDF simply means a <strong>PDF document that supports displaying, copying, and pasting text in any Unicode-supported language</strong>.*
+
+*I’ve used several third-party libraries to generate multilingual PDF documents in previous jobs. I was under the impression that as long as we used the correct fonts, the text would render automatically—and so would copy and paste. But when I tried to create a multilingual PDF with Rust, I soon realised it’s not that simple!*
+
+*With help from <a href="https://chatgpt.com/" title="ChatGPT" target="_blank">ChatGPT</a> and <a href="https://copilot.microsoft.com/" title="Copilot" target="_blank">Copilot</a>, we discovered that quite a bit of work is needed to get everything working. It’s not as simple as just embedding a font program in the PDF document.*
+
+*In this article, we’ll take an introductory look at creating a multilingual PDF document that includes both Chinese and Vietnamese text. The Rust code we’re writing runs on both Windows and Ubuntu.*
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/polyglot_pdf" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
+| ![153-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/11/153-feature-image.png) |
+|:--:|
+| *Rust: Multilingual PDFs — an Introductory Study* |
+
+<a id="repository-cloning"></a>
+🚀 The code for this post is in the following GitHub repository: 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01" 
+title="Rust multilingual PDFs" target="_blank">pdf_01</a>.
+
+<a id="required-harfbuzz"></a>
+This post requires the 
+<a href="https://en.wikipedia.org/wiki/HarfBuzz" title="HarfBuzz" target="_blank">HarfBuzz</a> 
+text shaping engine, as discussed in the  
+<a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine" 
+target="_blank">first article</a>. This engine is required for font subsetting, 
+a process we explored in the 
+<a href="https://behainguyen.wordpress.com/2025/11/04/rust-ffi-font-subsetting-using-the-harfbuzz-text-shaping-engine/" 
+title="Rust FFI Font Subsetting Using the HarfBuzz Text Shaping Engine" 
+target="_blank">second article</a>.
+
+<a id="lopdf-crate-ref-docs"></a>
+❶ <strong>The <a href="https://crates.io/crates/lopdf" title="lopdf: A Rust library 
+for PDF document manipulation." target="_blank"><code>lopdf</code></a> Crate and Some 
+Referenced Documentation</strong>
+
+<a id="lopdf-crate"></a>
+⓵ After studying several crates, I decided on 
+<a href="https://crates.io/crates/lopdf" title="lopdf: A Rust library for PDF document manipulation." target="_blank">lopdf</a>, 
+based on the assessments of both 
+<a href="https://copilot.microsoft.com/" title="Copilot" target="_blank">Copilot</a> 
+and <a href="https://chatgpt.com/" title="ChatGPT" target="_blank">ChatGPT</a>. In summary:
+
+<ul>
+<li style="margin-top:10px;">Strength
+<ul>
+<li style="margin-top:10px;">
+Low-level building blocks for the PDF spec.
+</li>
+<li style="margin-top:10px;">
+Excellent for parsing, editing, and merging.
+</li>
+<li style="margin-top:10px;">
+Fine-grained access to PDF objects, dictionaries, and streams.
+</li>
+<li style="margin-top:10px;">
+Can create and also parse/modify existing PDFs.
+</li>
+<li style="margin-top:10px;">
+Actively used in other Rust PDF projects.
+</li>
+</ul>
+</li>
+
+<li style="margin-top:10px;">Limitations
+<ul>
+<li style="margin-top:10px;">
+Not ideal for generating new documents from scratch.
+</li>
+<li style="margin-top:10px;">
+Steeper learning curve; requires familiarity with the PDF spec.
+</li>
+<li style="margin-top:10px;">
+Very low level — essentially working with the PDF object model (COS objects: a PDF file is structured as a tree of low-level objects).
+</li>
+</ul>
+</li>
+
+<li style="margin-top:10px;">
+Best Use Case — PDF post-processing: for users who want full control over PDF 
+internals (merging, splitting, editing metadata, repairing malformed files, etc.).
+</li>
+</ul>
+
+<a id="ref-docs"></a>
+⓶ Based on the <a href="https://docs.rs/lopdf/0.38.0/lopdf/" title="Crate lopdf" 
+target="_blank">lopdf documentation</a>:
+
+> A useful reference for understanding the PDF file format and the eventual usage of this library is the <a href="https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf">PDF 1.7 Reference Document</a>. The PDF 2.0 specification is available <a href="https://www.pdfa.org/announcing-no-cost-access-to-iso-32000-2-pdf-2-0/">here</a>.
+
+The <code>PDF 1.7 Reference Document</code> is a punishing read... I’ve gone over 
+chapter <strong>9 Text</strong> several times. The rest I haven’t covered. 
+In addition to this reference, Adobe has published perhaps thousands of 
+technical documents. I’ve read the following two:
+
+<ol>
+<li style="margin-top:10px;">
+<a href="https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://adobe-type-tools.github.io/font-tech-notes/pdfs/5014.CIDFont_Spec.pdf&ved=2ahUKEwiK_JbgxtyQAxWkxDgGHZOBLhoQFnoECAoQAQ&usg=AOvVaw1NEuXCM3ST9BCYoaFiQxfM" 
+title="Adobe Technical Note #5014, Adobe CMap and CIDFont Files Specification" 
+target="_blank">Adobe Technical Note #5014, Adobe CMap and CIDFont Files Specification</a> — 
+Explains embedding and subsetting in practice.
+</li>
+
+<li style="margin-top:10px;">
+<a href="https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://pdfa.org/norm-refs/5411.ToUnicode.pdf&ved=2ahUKEwickLTsxtyQAxUy-zgGHamWKxYQFnoECAoQAQ&usg=AOvVaw2_YKDMwJelXH3sQyZJhk04" 
+title="Adobe Technical Note #5411, ToUnicode Mapping File Tutorial" 
+target="_blank">Adobe Technical Note #5411, ToUnicode Mapping File Tutorial</a> — 
+Explains how copy and paste works.
+</li>
+</ol>
+
+I’ve also read the following six articles by Mr. Jay Berkenbilt, which I found very helpful. 
+The first is a standalone article; the next five form a series:
+
+<ol>
+<li style="margin-top:10px;">
+<a href="https://medium.com/@jberkenbilt/the-structure-of-a-pdf-file-6f08114a58f6" 
+title="The Structure of a PDF File" target="_blank">The Structure of a PDF File</a>
+</li>
+<li style="margin-top:10px;">
+<a href="https://medium.com/@jberkenbilt/text-in-pdf-introduction-df3dd3dfa9ea" 
+title="Text in PDF: Introduction" target="_blank">Text in PDF: Introduction</a>
+</li>
+<li style="margin-top:10px;">
+<a href="https://medium.com/@jberkenbilt/text-in-pdf-basic-operators-1ce4cd8564f2" 
+title="Text in PDF: Basic Operators" target="_blank">Text in PDF: Basic Operators</a>
+</li>
+<li style="margin-top:10px;">
+<a href="https://medium.com/@jberkenbilt/text-in-pdf-unicode-d13e68ba43ea" 
+title="Text in PDF: Unicode" target="_blank">Text in PDF: Unicode</a>
+</li>
+<li style="margin-top:10px;">
+<a href="https://medium.com/@jberkenbilt/text-in-pdf-fonts-and-spacing-eae6fd8d2b40" 
+title="Text in PDF: Fonts and Spacing" target="_blank">Text in PDF: Fonts and Spacing</a>
+</li>
+<li style="margin-top:10px;">
+<a href="https://medium.com/@jberkenbilt/text-in-pdf-non-latin-alphabets-2edd88884b68" 
+title="Text in PDF: Non-Latin Alphabets" target="_blank">Text in PDF: Non-Latin Alphabets</a>
+</li>
+</ol>
+
+In one of the articles, the author demonstrates that we can actually handcraft 
+a PDF document using just a normal text editor!
+
+<a id="ttf-parser-crate"></a>
+❷ <strong>The <a href="https://crates.io/crates/ttf-parser" title="ttf-parser: A 
+high-level, safe, zero-allocation font parser for TrueType, OpenType, and AAT." 
+target="_blank"><code>ttf-parser</code></a> Crate</strong>
+
+This crate seems to be very popular—at the time of writing this article, it already 
+has <code>40,306,200</code> downloads. I understand that it is written entirely in Rust, 
+and therefore does not require any external libraries. We can add this crate via 
+<code>cargo add ttf-parser</code>. 
+
+There are two methods in use that I’d like to mention.
+
+<a id="ttf-parser-units-per-em"></a>
+⓵ The first is 
+<a href="https://docs.rs/ttf-parser/0.25.1/ttf_parser/struct.Face.html#method.units_per_em" 
+title="pub fn units_per_em(&self) -&gt; u16" 
+target="_blank"><code>pub fn units_per_em(&self) -&gt; u16</code></a> — This <code>u16</code> 
+value defines the internal unit system of the font program. We use this value to prepare 
+font programs to be device-independent, so they can be scaled and rendered consistently 
+across different environments like screens, printers, and PDFs.
+
+We can try out the <code>units_per_em()</code> method using the Rust script below. 
+Replace <code>C:/Windows/Fonts/arialuni.ttf</code> with your own font path:
+
+Content of <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/main_ttf_parser_units_per_em.rs" 
+title="The pdf_01/src/main_ttf_parser_units_per_em.rs module" target="_blank"><code>pdf_01/src/main_ttf_parser_units_per_em.rs</code></a>:
+
+```rust
+use std::{fs, process};
+use ttf_parser::Face;
+
+fn main() {
+    // Load font file
+    let font_data = match fs::read("C:/Windows/Fonts/arialuni.ttf") {
+        Ok(res) => res,
+        Err(err) => {
+            println!("Error: {}", err);
+            process::exit(1);
+        }
+    };
+
+    // Font metric
+    let face = Face::parse(&font_data, 0).expect("TTF parse");
+    // Parse with ttf-parser for glyph indices + metrics
+    let units_per_em = face.units_per_em() as f32;
+
+    println!("units_per_em: {}", units_per_em);
+}
+```
+
+<a id="ttf-parser-glyph-index"></a>
+⓶ The second method is 
+<a href="https://docs.rs/ttf-parser/latest/ttf_parser/struct.Face.html#method.glyph_index" 
+title="pub fn glyph_index(&self, code_point: char) -&gt; Option&lt;GlyphId&gt;" 
+target="_blank"><code>pub fn glyph_index(&self, code_point: char) -&gt; Option&lt;GlyphId&gt;</code></a> 
+— Loosely speaking, this <code>GlyphId</code> is the font program’s 
+(<code>arialuni.ttf</code>) internal representation of the character <code>code_point</code>. 
+PDF readers use this <code>GlyphId</code> to render the character.
+
+Content of <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/main_ttf_parser_glyph_index.rs" 
+title="The pdf_01/src/main_ttf_parser_glyph_index.rs module" target="_blank"><code>pdf_01/src/main_ttf_parser_glyph_index.rs</code></a>:
+
+```rust
+use std::{fs, process};
+use ttf_parser::Face;
+
+fn main() {
+    // Load font file
+    let font_data = match fs::read("C:/Windows/Fonts/arialuni.ttf") {
+        Ok(res) => res,
+        Err(err) => {
+            println!("Error: {}", err);
+            process::exit(1);
+        }
+    };
+
+    // Font metric
+    let face = Face::parse(&font_data, 0).expect("TTF parse");
+
+    let strs = vec![
+        "Kỷ độ Long Tuyền đới nguyệt ma.",
+        "幾度龍泉戴月磨。",
+    ];  
+    
+    for str in strs {
+        let mut glyphs_for_text = Vec::<u16>::new();    
+
+        for ch in str.chars() {
+            if let Some(gid) = face.glyph_index(ch) {
+                glyphs_for_text.push(gid.0);
+            } else {
+                println!("Glyph ID not found for {ch}.");
+            }            
+        };
+
+        println!("Text: [{str}].");
+        println!("glyphs_for_text: {:?}", glyphs_for_text);
+    }
+}
+```
+
+🙏 Can you see that the contents of <code>glyphs_for_text</code> match the output of 
+<a href="https://behainguyen.wordpress.com/2025/11/04/rust-ffi-font-subsetting-using-the-harfbuzz-text-shaping-engine/#hb-shape" 
+title="Rust FFI Font Subsetting Using the HarfBuzz Text Shaping Engine" target="_blank">
+🪟 <code>hb-shape</code></a> that we discussed in the second article?
+
+<a id="win-pdfxplorer"></a>
+<p>
+❸ <strong>The <code>PDFXplorer</code> Windows GUI Application</strong>
+</p>
+
+<p>
+This application enables us to inspect the internal structure of PDF documents. 
+It also allows us to export certain data. It’s a very powerful tool—at least in my opinion.
+</p>
+
+<p>
+We can download the installer from 
+<a href="https://pdfxplorer.dev/" title="PDFXplorer" target="_blank">https://pdfxplorer.dev/</a>. 
+It is free software. The screenshot below shows a portion of the structure 
+of a PDF generated by the Rust code in this article:
+</p>
+
+![153-01-pdfxplorer-sample.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/11/153-01-pdfxplorer-sample.png)
+
+We can see internal objects discussed in the <a href="#ref-docs">reference documents</a> 
+listed above.
+
+<a id="rust-pdf"></a>
+❹ <strong>The Rust Code</strong>
+
+💡 Please note: on both Windows and Ubuntu, I’m running Rust version 
+<code>rustc 1.90.0 (1159e78c4 2025-09-14)</code>.
+
+This is once again a one-off project—I don’t plan to update it in future development. 
+I’d like to keep a log of progress exactly as it took place. Future code may 
+copy this and make changes to it. I’ve placed the project under the 
+<code>pdf_01</code> directory. The structure is simple:
+
+```
+├── build.rs
+├── Cargo.toml
+└── src
+    ├── main.rs
+    ├── pdf_font_info.rs
+    ├── pdf_gen.rs
+    ├── pdf_page.rs
+    └── subset_builder.rs
+```
+
+💡 As mentioned at <a href="#required-harfbuzz">the outset</a>, this code requires 
+the <code>HarfBuzz</code> text shaping library—it makes FFI calls into this library.
+🐧 On Ubuntu, all required libraries are globally recognized. 🪟 On Windows, I haven’t added the paths for <code>harfbuzz.dll</code>, <code>harfbuzz-subset.dll</code>, and their dependencies to the <code>PATH</code> environment variable. So in each new Windows terminal session, I run the following once:
+
+```
+set PATH=C:\PF\harfbuzz\build\src\;%PATH%
+set PATH=C:\PF\vcpkg\installed\x64-windows\bin\;%PATH%
+```
+
+After that, <code>cargo run</code> works as expected.
+
+🦀 Again, to keep things simple, we use absolute paths for everything in the code— 
+mostly font program files. Chances are you’ll need to modify the code to work 
+with your system.
+
+<a id="build-mod"></a>
+⓵ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/build.rs" 
+title="The pdf_01/build.rs module" target="_blank">
+<code>pdf_01/build.rs</code></a> module: This is an exact copy of the 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/harfbuzz_font_subset/build.rs" 
+title="The harfbuzz_font_subset/build.rs module" target="_blank"><code>
+harfbuzz_font_subset/build.rs</code></a> discussed in the 
+<a href="https://behainguyen.wordpress.com/2025/11/04/rust-ffi-font-subsetting-using-the-harfbuzz-text-shaping-engine/#rust-harfbuzz-subsetting" 
+title="Rust FFI Font Subsetting Using the HarfBuzz Text Shaping Engine" 
+target="_blank">second article</a>.
+
+<a id="cargo-file"></a>
+⓶ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/Cargo.toml" 
+title="The pdf_01/Cargo.toml file" target="_blank"><code>pdf_01/Cargo.toml</code></a>: 
+Similar to the previous two, with two new <code>[dependencies]</code>: <code>rand</code> 
+and <code>ttf-parser</code>.
+
+<a id="subset-builder-mod"></a>
+⓷ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/subset_builder.rs" 
+title="The pdf_01/src/subset_builder.rs module" target="_blank"><code>pdf_01/src/subset_builder.rs</code></a> 
+module: At 
+<a href="https://behainguyen.wordpress.com/2025/11/04/rust-ffi-font-subsetting-using-the-harfbuzz-text-shaping-engine/#concluding-remarks" 
+title="Rust FFI Font Subsetting Using the HarfBuzz Text Shaping Engine" 
+target="_blank">the conclusion</a> of the second article, we mentioned that we’d turn 
+the code in the 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/harfbuzz_font_subset/src/main.rs" 
+title="The harfbuzz_font_subset/src/main.rs module" target="_blank"><code>
+harfbuzz_font_subset/src/main.rs</code></a> module into a generic function:
+
+```rust
+pub fn get_font_subset(input_font_file: &str, 
+    face_index: u32, 
+    text: &str
+) -> Result<Vec<u8>, String>
+```
+
+This module is that function — with error handling.
+
+<a id="pdf-font-info-mod"></a>
+⓸ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_font_info.rs" 
+title="The pdf_01/src/pdf_font_info.rs module" target="_blank"><code>pdf_01/src/pdf_font_info.rs</code></a> 
+module: A helper module. It’s only 81 lines including comments and should be 
+self-explanatory.
+
+<a id="pdf-page-mod"></a>
+⓹ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_page.rs" 
+title="The pdf_01/src/pdf_page.rs module" target="_blank"><code>pdf_01/src/pdf_page.rs</code></a> 
+module: Attempts to encapsulate input PDF pages. At this initial stage, pages contain 
+only text. Each page also has a vector of <code>u8</code>, representing the text’s 
+character glyph IDs (CIDs) as big-endian <code>u16</code> bytes. We described 
+extracting glyph IDs in a <a href="#ttf-parser-glyph-index">previous section</a>.
+
+<a id="pdf-page-mod-page-coll"></a>
+The page collection — 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_page.rs#L13-L21" 
+title="The pdf_01/src/pdf_page.rs module struct PdfPages" target="_blank"><code>struct PdfPages</code></a> 
+defines <code>used_cids</code>, which are the unique glyph IDs for text across all pages. 
+The method 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_page.rs#L65-L95" 
+title="The pdf_01/src/pdf_page.rs module struct PdfPages" target="_blank"><code>prepare_used_cids_glyph_bytes()</code></a> 
+must be called explicitly to prepare text glyph IDs for further processing: <strong>This 
+data enables characters beyond English to be recognised and rendered by PDF readers.</strong>
+
+<a id="pdf-gen-mod"></a>
+⓺ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_gen.rs" 
+title="The pdf_01/src/pdf_gen.rs module" target="_blank"><code>pdf_01/src/pdf_gen.rs</code></a> 
+module: Responsible for generating the PDF document. The call sequence is listed below — 
+the <code>main()</code> function calls the public function <code>generate_pdf()</code>, 
+which then calls <code>PdfPages::prepare_used_cids_glyph_bytes()</code> 
+<a href="#pdf-page-mod-page-coll">as described</a>, then calls <code>prepare_pdf_doc()</code>, 
+and so on:
+
+```
+generate_pdf()
+    |
+    PdfPages::prepare_used_cids_glyph_bytes()
+    |
+    prepare_pdf_doc()
+    |       |
+    |       create_font_stream()
+    |       create_font_descriptor()
+    |
+    prepare_shared_font()
+    |       |
+    |       get_width_maps()
+    |       build_w_array()
+    |       create_cid_font_type2()
+    |       make_to_unicode_cmap()
+    |       create_font_referencing_descendant()
+    |       create_font_resources_id()
+    |
+    prepare_page_content() ➜ repeat for each page
+    |
+    finalise PDF creation
+```
+
+```
+We won’t go into detail for each method — they implement internal objects 
+covered in the <a href="#ref-docs">reference literature</a>. Notable points:
+```
+
+● Function <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_gen.rs#L17-L83" 
+title="The pdf_01/src/pdf_gen.rs module make_to_unicode_cmap() function" target="_blank">
+<code>make_to_unicode_cmap()</code></a>: Implements copy and paste. To disable it, 
+comment out line <code>215</code> in 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_gen.rs#L203-L219" 
+title="The pdf_01/src/pdf_gen.rs module create_font_referencing_descendant() function" target="_blank">
+<code>create_font_referencing_descendant()</code></a>: 
+<code>"ToUnicode" => tounicode_id,</code>. Without this, copying text from the generated PDF 
+will result in tofu or rectangle boxes.
+
+Please note: this function is incomplete and only works for a small amount of text, 
+as noted in the inline comments. It’s a work in progress.
+
+● In 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_gen.rs#L250-L267" 
+title="The pdf_01/src/pdf_gen.rs module prepare_page_content() function" target="_blank">
+<code>prepare_page_content()</code></a>, we take the page’s 
+<a href="#pdf-page-mod"><code>glyph bytes</code></a> (big-endian <code>u16</code> values) 
+and feed them to the PDF <code>Tj</code> operator to render the page text content.
+
+● The <code>Identity-H</code> encoding: Specifies a direct 1:1 mapping between 
+character codes and CIDs (glyph IDs) in the font. Code 0 maps to CID 0, code 1 to CID 1, 
+and so on. It tells the PDF viewer not to apply any predefined character collection or 
+re-encoding—just use the embedded font’s glyphs as-is. When using <code>Identity-H</code>, 
+text data is typically written as big-endian <code>u16</code> values to the 
+<code>Tj</code> or <code>TJ</code> operators.
+
+● <code>/Registry (Adobe) /Ordering (Identity) /Supplement 0</code>: This defines
+the <em>character collection</em> for the CIDFont. The "Identity" collection means
+no external mapping is used — glyph selection is entirely determined by the CIDs
+within the embedded font. The <code>Registry</code> and <code>Supplement</code> entries
+are formal identifiers required by the PDF spec, but in this case they simply indicate
+that the font uses its own internal identity mapping.
+
+Together, <code>Identity-H</code> and <code>(Adobe, Identity, 0)</code> tell the PDF
+reader: “This is a Unicode-style CIDFont where the character codes map directly to
+glyph IDs inside the embedded font.”
+
+<a id="main-mod"></a>
+⓻ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/main.rs" 
+title="The pdf_01/src/main.rs module" target="_blank"><code>pdf_01/src/main.rs</code></a>
+module: Calls functions from other modules to create a two-page PDF document. 
+Please note that the text used in this document is also 
+<a href="https://behainguyen.wordpress.com/2025/11/04/rust-ffi-font-subsetting-using-the-harfbuzz-text-shaping-engine/#glyph-id" 
+title="Rust FFI Font Subsetting Using the HarfBuzz Text Shaping Engine" 
+target="_blank">the same text</a> used in the second article. The first page contains 
+the single Vietnamese verse; the second page contains the single Chinese verse. 
+This module should be self-explanatory.
+
+<a id="examine-via-pdfxplorer"></a>
+❺ <strong>Examine Generated PDFs with <code>PDFXplorer</code></strong>
+
+<a id="pdfxplorer-ubuntu-pdf-font"></a>
+Let’s take another look at the PDF generated on 🐧 Ubuntu using <code>PDFXplorer</code>. 
+The screenshot below shows the font name defined by the 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_font_info.rs#L70-L81" 
+title="The pdf_01/src/pdf_font_info.rs module get_font_info() function" target="_blank"><code>get_font_info()</code></a> 
+function:
+
+![153-02-pdfxplorer-ubuntu.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/11/153-02-pdfxplorer-ubuntu.png)
+
+The screenshot below shows page 1 — the <code>/Kids[0]</code> object:
+
+![153-03-pdfxplorer-ubuntu.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/11/153-03-pdfxplorer-ubuntu.png)
+
+The long sequence of digits between angle brackets, i.e. <code>&lt;000...002&gt;</code>, 
+represents the <code>glyph bytes</code> — big-endian <code>u16</code> byte encoding of the text 
+<code>"Kỷ độ Long Tuyền đới nguyệt ma."</code>.
+
+Navigating through the document structure, we can see the objects we programmed 
+in the code. We also observe PDF operators such as <code>Tf</code>, <code>Td</code>, 
+<code>Tj</code>, etc., as described in the <a href="#ref-docs">reference literature</a>, 
+particularly in the <code>PDF 1.7 Reference Document</code>, chapter <strong>9 Text</strong>.
+
+<a id="examine-via-pdffonts"></a>
+❻ <strong>Examine Generated PDFs with <code>pdffonts</code></strong>
+
+The <code>HarfBuzz</code> 
+<a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/#installation-on-ubuntu" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine" 
+target="_blank">🐧 Ubuntu installation</a> we performed in the first article also installs 
+the <code>pdffonts</code> CLI, which we can use to list the fonts used in a PDF. 
+The screenshot below shows <code>pdffonts</code> in use:
+
+![153-04-pdffonts-ubuntu.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/11/153-04-pdffonts-ubuntu.png)
+
+We can see that there’s no issue with the font, and the font name matches the one shown by 
+<a href="#pdfxplorer-ubuntu-pdf-font"><code>PDFXplorer</code></a> — 
+as expected, since this is the same PDF document.
+
+<a id="concluding-remarks"></a>
+❼ <strong>What’s Next</strong>
+
+The Rust code presented in this article is incomplete, as noted, and not of much 
+practical value beyond illustrating how to create a multilingual PDF. There’s still 
+a lot to do.
+
+Although I’ve used the <a href="https://crates.io/crates/lopdf" title="lopdf: A Rust library 
+for PDF document manipulation." target="_blank"><code>lopdf</code></a> crate in this 
+article, I’m still not very familiar with it. I’ll need to spend more time studying 
+this crate.
+
+I have a lot of ideas to explore. I’m not yet sure what the next article in this series will be. 
+As I continue to explore this subject, I’ll document it whenever there’s something worthwhile to share.
+
+Thanks for reading! I hope this post helps others who are looking to deepen their understanding 
+of PDF technology. As always—stay curious, stay safe 🦊
+
+✿✿✿
+
+Feature image sources:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.rust-lang.org/" target="_blank">https://www.rust-lang.org/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+<li>
+<a href="https://ur.wikipedia.org/wiki/%D9%81%D8%A7%D8%A6%D9%84:HarfBuzz.svg" target="_blank">https://ur.wikipedia.org/wiki/%D9%81%D8%A7%D8%A6%D9%84:HarfBuzz.svg</a>
+</li>
+</ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/polyglot_pdf" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
