@@ -144,7 +144,7 @@ target="_blank">first article</a>, 🪟 on Windows, before running these CLIs we
 need to set the library paths once per terminal session:
 
 ```
-set PATH=C:\PF\harfbuzz\build\src\;%PATH%
+set PATH=C:\PF\harfbuzz\dist\bin\;%PATH%
 set PATH=C:\PF\vcpkg\installed\x64-windows\bin\;%PATH%
 ```
 
@@ -357,7 +357,7 @@ managed by <code>HarfBuzz</code>.
 🐧 On Ubuntu, all required libraries are globally recognized. 🪟 On Windows, I haven’t added the paths for <code>harfbuzz.dll</code>, <code>harfbuzz-subset.dll</code>, and their dependencies to the <code>PATH</code> environment variable. So in each new Windows terminal session, I run the following once:
 
 ```
-set PATH=C:\PF\harfbuzz\build\src\;%PATH%
+set PATH=C:\PF\harfbuzz\dist\bin\;%PATH%
 set PATH=C:\PF\vcpkg\installed\x64-windows\bin\;%PATH%
 ```
 

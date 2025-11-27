@@ -256,10 +256,10 @@ dir /s *glib*.dll
 ```
 
 I counted 8 copies across 8 different subdirectories. I'm not entirely sure which one is used by the 
-<a href="#win-install-harfbuzz">HarfBuzz build (install) process</a>.
+<a href="#win-build-install-harfbuzz">HarfBuzz build and install process</a>.
 
-<a id="win-install-harfbuzz"></a>
-⓻ <strong>Build (Install) the HarfBuzz Text Shaping Engine</strong>
+<a id="win-build-install-harfbuzz"></a>
+⓻ <strong>Build and Install the HarfBuzz Text Shaping Engine</strong>
 
 References:
 
@@ -291,6 +291,7 @@ set PKG_CONFIG=C:\PF\vcpkg\installed\x64-windows\tools\pkgconf\pkgconf.exe
 set PKG_CONFIG_PATH=C:\PF\vcpkg\installed\x64-windows\lib\pkgconfig
 meson setup build --wipe --buildtype=release -Ddefault_library=shared -Dfreetype=enabled -Dglib=enabled -Dutilities=enabled
 meson compile -C build
+meson install -C build --destdir ../dist
 ```
 
 The last part of the <code>meson setup build...</code> command:
@@ -413,6 +414,31 @@ After a successful build, you should see the following files:
 </ul>
 </li>
 </ul>
+
+<a id="win-install-harfbuzz"></a>
+The output of the <code>meson install -C build --destdir ../dist</code> command:
+
+```
+C:\PF\harfbuzz\dist\bin\harfbuzz-gobject.dll
+C:\PF\harfbuzz\dist\bin\harfbuzz-subset.dll
+C:\PF\harfbuzz\dist\bin\harfbuzz.dll
+C:\PF\harfbuzz\dist\bin\hb-info.exe
+C:\PF\harfbuzz\dist\bin\hb-shape.exe
+C:\PF\harfbuzz\dist\bin\hb-subset.exe
+
+C:\PF\harfbuzz\dist\include\harfbuzz\[hb.h, hb-subset.h, and other *.h]
+
+C:\PF\harfbuzz\dist\lib\harfbuzz-gobject.lib
+C:\PF\harfbuzz\dist\lib\harfbuzz-subset.lib
+C:\PF\harfbuzz\dist\lib\harfbuzz.lib
+
+C:\PF\harfbuzz\dist\lib\cmake\harfbuzz
+C:\PF\harfbuzz\dist\lib\cmake\harfbuzz\harfbuzz-config.cmake
+
+C:\PF\harfbuzz\dist\lib\pkgconfig\harfbuzz-gobject.pc
+C:\PF\harfbuzz\dist\lib\pkgconfig\harfbuzz-subset.pc
+C:\PF\harfbuzz\dist\lib\pkgconfig\harfbuzz.pc
+```
 
 To verify that these binaries are 64-bit, run the following commands. Each should report <code>8664 machine (x64)</code>:
 
@@ -575,14 +601,14 @@ fn main() {
     // println!("cargo:rustc-link-lib=static=harfbuzz");
     println!("cargo:rustc-link-lib=harfbuzz");
 
-    // C:\PF\harfbuzz\src\[*.h, hb.h]
-    // /usr/local/include/harfbuzz/[*.h, hb.h]    
-    // C:\PF\harfbuzz\build\src\harfbuzz.lib
+    // C:\PF\harfbuzz\dist\include\harfbuzz\[*.h, hb.h]
+    // /usr/local/include/harfbuzz/[*.h, hb.h]
+    // C:\PF\harfbuzz\dist\lib\harfbuzz.lib
     // /usr/local/lib/x86_64-linux-gnu/libharfbuzz.so.0
     let (hb_include, lib_search) = if cfg!(target_os = "windows") {
         (
-            "C:/PF/harfbuzz/src/",
-            "C:/PF/harfbuzz/build/src/",
+            "C:/PF/harfbuzz/dist/include/harfbuzz",
+            "C:/PF/harfbuzz/dist/lib/",
         )        
     } else {
         (
@@ -665,7 +691,7 @@ Please note that <code>cargo build</code> produces over 1,000 warnings, mostly r
 On Ubuntu, all required libraries are globally recognized. On Windows, I haven’t added the paths for <code>harfbuzz.dll</code> and its dependencies to the <code>PATH</code> environment variable. So in each new Windows terminal session, I run the following once:
 
 ```
-set PATH=C:\PF\harfbuzz\build\src\;%PATH%
+set PATH=C:\PF\harfbuzz\dist\bin\;%PATH%
 set PATH=C:\PF\vcpkg\installed\x64-windows\bin\;%PATH%
 ```
 
