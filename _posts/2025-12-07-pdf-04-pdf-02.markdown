@@ -1,0 +1,781 @@
+---
+layout: post
+title: "Rust: PDFs — Basic Text Layout"
+
+description: In the last article we created a two-page PDF in which each page contained only a short Chinese and a Vietnamese sentence. In this article, we look at some basic text layout&#58; how to fit a line of text within a given page width, and how many lines can fit within a given page height. We then create a simple PDF document with more than 70 pages of only Vietnamese text, using only a single font program and font size.
+
+tags:
+- Rust
+- FFI
+- HarfBuzz
+- hb-shape
+- hb-subset
+- Unicode
+- font subset
+- PDF
+- multilingual
+- line breaking
+- text layout
+- layout
+---
+
+*In the <a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/" title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a> we created a two-page PDF in which each page contained only a short Chinese and a Vietnamese sentence. In this article, we look at some basic text layout: how to fit a line of text within a given page width, and how many lines can fit within a given page height. We then create a simple PDF document with more than 70 pages of <strong>only</strong> Vietnamese text, using <strong>only</strong> a single font program and font size.*
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/polyglot_pdf" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
+| ![154-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/12/154-feature-image.png) |
+|:--:|
+| *Rust: PDFs — Basic Text Layout* |
+
+<a id="repository-cloning"></a>
+🚀 The code for this post is in the following GitHub repository: 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02" 
+title="Rust multilingual PDFs" target="_blank">pdf_02</a>.
+
+<a id="limitations-objective"></a>
+❶ <strong>Limitations and Objectives</strong>
+
+<a id="limitations"></a>
+⓵ <strong>Limitations</strong>—We focus on basic text layout. To keep 
+the task simple, we limit the scope of this article to:
+
+<ol>
+<li style="margin-top:10px;">
+Using only one font program and one font size for the entire document.
+</li>
+<li style="margin-top:10px;">
+The text contains only a single language — in this case, Vietnamese.
+</li>
+<li style="margin-top:10px;">
+Punctuation marks and brackets are treated as part of the immediate “words.” 
+(In Vietnamese, sequences of letters separated by spaces are morphemes rather than words.)
+<p>
+To further clarify this limitation, consider the note above 
+<code>(In Vietnamese, ... words.)</code>. 
+<code>(In</code>, <code>Vietnamese,</code>, and <code>words.)</code> are each treated 
+as single units for width calculation.
+</p>
+</li>
+<li style="margin-top:10px;">
+PDF paragraphs are not right-justified; they are right-ragged.
+</li>
+</ol>
+
+Although the text contains natural headers, we treat them simply as normal 
+paragraphs.
+
+<a id="objective"></a>
+⓶ <strong>Objective</strong>—We aim to understand the following essentials 
+of text layout:
+
+<ol>
+<li style="margin-top:10px;">
+Given a page width in PostScript points, a font program, and a font size, 
+how to break paragraphs into lines that fit the page width.
+</li>
+<li style="margin-top:10px;">
+Then, given the page height (also in PostScript points), how many of those 
+lines can be written to the page.
+</li>
+</ol>
+
+<a id="text-layout-overview"></a>
+❷ <strong>Text Layout Overview</strong>
+
+● Break each input text paragraph into individual tokens based on spaces.
+
+● Shape each token and calculate its width using the current font program and 
+font size. Store each <code>(token, PostScript width)</code> pair in a vector.
+
+● Iterate through the token–width vector and build lines according to the page width.
+
+This implementation is very rudimentary. Text layout, especially line breaking, 
+has a long and well-established foundation. Among many approaches, one of the most 
+well-known is the 
+<a href="https://en.wikipedia.org/wiki/Knuth%E2%80%93Plass_line-breaking_algorithm" 
+title="Knuth–Plass line-breaking algorithm" target="_blank">Knuth–Plass line-breaking algorithm</a>.
+
+The link for <em>Breaking Paragraphs into Lines, the original paper by Knuth and Plass</em> 
+<a href="http://www.eprg.org/G53DOC/pdfs/knuth-plass-breaking.pdf" 
+title="Breaking Paragraphs into Lines, the original paper by Knuth and Plass" 
+target="_blank">http://www.eprg.org/G53DOC/pdfs/knuth-plass-breaking.pdf</a>, 
+as quoted by Wikipedia, no longer works. After some searching, I was able to locate 
+a copy and took the liberty of uploading it to 
+<a href="https://drive.google.com/file/d/1zJwcRZ6q9zWfTtEMclF3HuOAFKnXj3fP/view?usp=sharing" 
+title="Breaking Paragraphs into Lines, the original paper by Knuth and Plass" 
+target="_blank">my own Google Drive</a>, since it is a publicly available document.
+
+I have read both Dr. Plass' thesis and the paper by Prof. Knuth and Dr. Plass. 
+The former is very difficult to read, as it is highly math-centric. The latter 
+is somewhat easier. Implementing the algorithm as described by Prof. Knuth and 
+Dr. Plass would require a significant amount of work.
+
+<a id="a4-page-geometry"></a>
+❸ <strong>A4 Page Geometry</strong>
+
+<a id="a4-page-size"></a>
+⓵ <strong>Page size</strong>: 
+We are working with A4 size. I have not been able to locate any official Adobe 
+documentation on paper sizes. Searching with phrases such as 
+<code>pdf A4 size in postscript point</code> 
+returns 
+<a href="https://communities.efi.com/s/article/International-standard-paper-sizes-in-PostScript-and-PDF?language=en_US" 
+title="International standard paper sizes in PostScript and PDF" 
+target="_blank">International standard paper sizes in PostScript and PDF</a>, 
+which lists ISO 216 paper format dimensions in PostScript points (1 pt = 25.4/72 mm), 
+rounded to the nearest integer value.
+
+In PDF, we work with PostScript points, where <code>1 PostScript point = 1/72 inch</code> 
+exactly. <code>1 inch</code> equals <code>25.4 mm</code>. The A4 width and height in 
+PostScript points are calculated as:
+
+● Width: (210 ÷ 25.4) × 72 ≈ 595.2755 PostScript points.
+
+● Height: (297 ÷ 25.4) × 72 ≈ 841.8897 PostScript points.
+
+In the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">previous post</a>, 
+we were 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_01/src/pdf_gen.rs#L316"
+title="pdf_01/src/pdf_gen.rs module" target="_blank">hardcoding <code>595</code> and 
+<code>842</code></a>:
+
+<figure class="highlight"><pre><code class="language-rust" data-lang="rust"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">316
+</pre></td><td class="code"><pre><span class="s">"MediaBox"</span> <span class="k">=&gt;</span> <span class="nd">vec!</span><span class="p">[</span><span class="mi">0</span><span class="nf">.into</span><span class="p">(),</span> <span class="mi">0</span><span class="nf">.into</span><span class="p">(),</span> <span class="mi">595</span><span class="nf">.into</span><span class="p">(),</span> <span class="mi">842</span><span class="nf">.into</span><span class="p">()],</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+Viewing the 
+<a href="https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf" 
+title="PDF 1.7 Reference Document" target="_blank">PDF 1.7 Reference Document</a> 
+in <a href="https://pdfxplorer.dev/" title="PDFXplorer" target="_blank">PDFXplorer</a> 
+shows that the <code>MediaBox</code> is defined as <code>(0, 0, 595.22, 842)</code>:
+
+![154-01-page-geometry.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/12/154-01-page-geometry.png)
+
+Please note:
+
+● <code>0, 0</code> — the X and Y coordinates of the bottom-left corner.
+
+● <code>595.22, 842</code> — the X and Y coordinates of the top-right corner.
+
+<a id="a4-page-margin"></a>
+⓶ <strong>Page margin</strong>: Google search suggests that there is no standard 
+A4 page margin, which makes sense. A <code>20mm</code> margin seems reasonable.
+
+A4 page geometry is defined in the 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/page_geometry.rs" 
+title="pdf_02/src/page_geometry.rs module" target="_blank">
+<code>pdf_02/src/page_geometry.rs</code></a> module, which we will discuss 
+further in a <a href="#pdf-page-geometry">later section</a>.
+
+<a id="repository-layout"></a>
+❹ <strong>Repository Layout</strong>
+
+💡 Please note: on both Windows and Ubuntu, I’m running Rust version 
+<code>rustc 1.90.0 (1159e78c4 2025-09-14)</code>.
+
+This is once again a one-off project—I don’t plan to update it in future development. 
+I want to keep a log of progress exactly as it occurred. Future code may 
+copy this and make changes to it. I’ve placed the project under the 
+<code>pdf_02</code> directory. The structure is:
+
+```
+├── build.rs
+├── Cargo.toml
+├── set_env.bat
+├── src
+│   ├── main_rustybuzz.rs
+│   ├── main_harfbuzz_text_shape.rs
+│   ├── main_line_width.rs
+│   ├── main_text_layout.rs
+│   ├── main.rs
+│   ├── page_geometry.rs
+│   ├── pdf_font_info.rs
+│   ├── pdf_gen.rs
+│   ├── pdf_text.rs
+│   ├── subset_builder.rs
+│   └── text_layout.rs
+└── text
+    └── essay.txt
+```
+
+<a id="repository-layout-desc"></a>
+The first four modules under <code>src/</code>—<code>main_*.rs</code>—are self-contained 
+Rust programs that I wrote in the listed order to help me understand 
+text shaping. We discuss these in the 
+<a href="#study-code">Text Shaping Investigative Code</a> section. 
+The <code>text/essay.txt</code> file is the Vietnamese input text, which the article’s 
+main code converts into a PDF document. We discuss this code in the 
+<a href="#rust-pdf">The Article Main Code</a> section.
+
+<a id="study-code"></a>
+❺ <strong>Text Shaping Investigative Code</strong>
+
+These are the four self-contained modules under <code>src/</code> prefixed with 
+<code>main_*.rs</code>, as <a href="#repository-layout-desc">previously described</a>. 
+To activate these modules, manually update the 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/Cargo.toml" 
+title="pdf_02/Cargo.toml file" target="_blank"><code>pdf_02/Cargo.toml</code></a> 
+file as follows:
+
+```toml
+...
+[[bin]]
+name = "pdf_02"
+
+# path = "src/main.rs"
+
+path = "src/main_rustybuzz.rs"
+# path = "src/main_harfbuzz_text_shape.rs"
+# path = "src/main_line_width.rs"
+# path = "src/main_text_layout.rs"
+
+[dependencies]
+...
+rustybuzz = "0.20.1"
+...
+```
+
+The next three modules do not require the 
+<a href="https://docs.rs/rustybuzz/latest/rustybuzz/" title="Crate rustybuzz" target="_blank">rustybuzz</a> 
+crate:
+
+```
+...
+[[bin]]
+name = "pdf_02"
+
+# path = "src/main.rs"
+
+# path = "src/main_rustybuzz.rs"
+path = "src/main_harfbuzz_text_shape.rs"
+# path = "src/main_line_width.rs"
+# path = "src/main_text_layout.rs"
+
+[dependencies]
+...
+# rustybuzz = "0.20.1"
+...
+```
+
+Recall that the primary <a href="#objective">objective</a> is to break paragraphs 
+into lines that fit a given page width, for a specific font program and font size. 
+
+<a id="study-code-rustybuzz"></a>
+⓵ <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_rustybuzz.rs" 
+title="pdf_02/src/main_rustybuzz.rs module" target="_blank">
+<code>pdf_02/src/main_rustybuzz.rs</code></a>—To calculate the total width in 
+PostScript points of a word (or a Vietnamese morpheme), we need to know the width of 
+individual characters—or more precisely, the width of each glyph, which is the visual 
+representation of a character. This process is called text shaping. 
+The <a href="https://docs.rs/rustybuzz/latest/rustybuzz/" title="Crate rustybuzz" 
+target="_blank">rustybuzz</a> crate is the native Rust implementation of the 
+<a href="https://github.com/harfbuzz/harfbuzz" title="The HarfBuzz text shaping engine" 
+target="_blank">HarfBuzz</a> library’s text shaping algorithm. 
+
+This module should be self-explanatory if you have read the last two articles in this 
+series. We have already covered <code>units per em</code> in a 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#ttf-parser-units-per-em" 
+title="Rust: Multilingual PDFs — an Introductory Study" 
+target="_blank">previous article</a>. 
+<code>Font size in PostScript points ÷ units per em</code> gives a <code>scaling factor</code> 
+that converts from the font’s internal design units to physical units. Then 
+<code>glyph’s x_advance × scaling factor</code> expresses the advance in PostScript points, 
+which is the unit PDF uses for text layout.
+
+🪟 Windows output:
+
+```
+"Kỷ độ Long Tuyền đới nguyệt ma." in 12 pt C:/Windows/Fonts/arialuni.ttf is 179.45 pt wide
+```
+
+🐧 Ubuntu output:
+
+```
+"Kỷ độ Long Tuyền đới nguyệt ma." in 12 pt /home/behai/Noto_Sans_TC/NotoSansTC-Regular.ttf is 183.94 pt wide
+```
+
+We study the 
+<a href="https://docs.rs/rustybuzz/latest/rustybuzz/" title="Crate rustybuzz" 
+target="_blank">rustybuzz</a> crate as a point of interest, but we are not going to use it. 
+Since we still need to rely on the 
+<a href="https://github.com/harfbuzz/harfbuzz" title="The HarfBuzz text shaping engine" 
+target="_blank">HarfBuzz</a> library, which already provides this functionality, our focus 
+is on understanding how to determine the glyphs’ <code>x_advance</code> values.
+
+<a id="study-code-harfbuzz-text-shape"></a>
+⓶ <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_harfbuzz_text_shape.rs" 
+title="pdf_02/src/main_harfbuzz_text_shape.rs module" target="_blank">
+<code>pdf_02/src/main_harfbuzz_text_shape.rs</code></a>—I did not write this 
+module entirely by myself. I performed a Google search for 
+<a href="https://www.google.com/search?q=HarfBuzz+text+shaping+example&sca_esv=2286498253ea9ec4&sxsrf=AE3TifOaqxgXsmoib3nw-seZgGY94QlA4Q%3A1762907608173&ei=2NUTae6rCr-dseMPoor7kAs&ved=0ahUKEwju94bOruuQAxW_TmwGHSLFHrIQ4dUDCBE&uact=5&oq=HarfBuzz+text+shaping+example&gs_lp=Egxnd3Mtd2l6LXNlcnAiHUhhcmZCdXp6IHRleHQgc2hhcGluZyBleGFtcGxlMgUQIRigATIFECEYoAFI2xtQgAVYuhpwAXgBkAEAmAH-AaABvAqqAQUwLjcuMbgBA8gBAPgBAZgCCaACgAvCAgoQABiwAxjWBBhHwgIGEAAYFhgewgIFEAAY7wXCAggQABiABBiiBMICBBAhGBXCAgcQIRigARgKmAMAiAYBkAYIkgcFMS43LjGgB9AUsgcFMC43LjG4B_gKwgcHMC40LjQuMcgHIw&sclient=gws-wiz-serp" 
+title="Google search: HarfBuzz text shaping example" 
+target="_blank">HarfBuzz text shaping example</a>, and Google AI Overview provided a 
+sample in C that included the glyph’s <code>x_advance</code> field. I converted the given 
+C example into Rust, and Copilot suggested two helper functions: 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_harfbuzz_text_shape.rs#L35-L37" 
+title="pdf_02/src/main_harfbuzz_text_shape.rs module" target="_blank">
+<code>get_glyph_info()</code></a> and 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_harfbuzz_text_shape.rs#L39-L41" 
+title="pdf_02/src/main_harfbuzz_text_shape.rs module" target="_blank">
+<code>get_glyph_pos()</code></a>.
+
+The code in this module uses FFI, which we have already covered in earlier articles of 
+this series. It should not be too difficult to follow. 
+
+🪟 Windows output:
+
+```
+Shaped text glyph information:
+Glyph ID: 46, Cluster: 0, X Advance: 1366, Y Advance: 0, X Offset: 0, Y Offset: 0
+Glyph ID: 2985, Cluster: 1, X Advance: 1024, Y Advance: 0, X Offset: 0, Y Offset: 0
+...omitted 27 entries...
+Glyph ID: 68, Cluster: 41, X Advance: 1139, Y Advance: 0, X Offset: 0, Y Offset: 0
+Glyph ID: 17, Cluster: 42, X Advance: 569, Y Advance: 0, X Offset: 0, Y Offset: 0
+```
+
+🐧 Ubuntu output:
+
+```
+Shaped text glyph information:
+Glyph ID: 44, Cluster: 0, X Advance: 621, Y Advance: 0, X Offset: 0, Y Offset: 0
+Glyph ID: 460, Cluster: 1, X Advance: 521, Y Advance: 0, X Offset: 0, Y Offset: 0
+...omitted 27 entries...
+Glyph ID: 66, Cluster: 41, X Advance: 563, Y Advance: 0, X Offset: 0, Y Offset: 0
+Glyph ID: 15, Cluster: 42, X Advance: 278, Y Advance: 0, X Offset: 0, Y Offset: 0
+```
+
+This exploration of HarfBuzz shaping prepares us for the next step: measuring line widths 
+and understanding how shaped glyph advances translate into text layout. 
+
+<a id="study-code-harfbuzz-line-width"></a>
+⓷ <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_line_width.rs" 
+title="pdf_02/src/main_line_width.rs module" target="_blank">
+<code>pdf_02/src/main_line_width.rs</code></a>—This module is a refactored 
+version of 
+<a href="#study-code-harfbuzz-text-shape">main_harfbuzz_text_shape.rs</a>, 
+incorporating the total width calculation implemented in 
+<a href="#study-code-rustybuzz">main_rustybuzz.rs</a>.
+
+🪟 Windows output:
+
+```
+"Kỷ độ Long Tuyền đới nguyệt ma." in 12 pt C:/Windows/Fonts/arialuni.ttf is 179.45 pt wide
+```
+
+🐧 Ubuntu output:
+
+```
+"Kỷ độ Long Tuyền đới nguyệt ma." in 12 pt /home/behai/Noto_Sans_TC/NotoSansTC-Regular.ttf is 183.94 pt wide
+```
+
+🙏 Please note that the output matches exactly that of <a href="#study-code-rustybuzz">main_rustybuzz.rs</a>.
+
+This alignment confirms that our HarfBuzz-based implementation produces consistent results 
+with the Rustybuzz example, and it sets the stage for the next module, where we move from 
+measuring line widths to laying out entire lines of text. 
+
+<a id="study-code-harfbuzz-text-layout"></a>
+⓸ <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs" 
+title="pdf_02/src/main_text_layout.rs module" target="_blank">
+<code>pdf_02/src/main_text_layout.rs</code></a>—We extend the code discussed 
+in <a href="#study-code-harfbuzz-line-width">main_line_width.rs</a> to implement 
+the simple line breaking algorithm described in the <a href="#text-layout-overview">
+Text Layout Overview</a> section. We note the following:
+
+<span style="font-size:1.2em;font-weight:bold;">⑴</span> The helper function 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L43-L71" 
+title="pdf_02/src/main_text_layout.rs module | width_in_point() function" target="_blank">
+<code>width_in_point()</code></a> is responsible for calculating the space 
+required, in PostScript points, to draw all glyphs for words (morphemes) in the text.
+
+<span style="font-size:1.2em;font-weight:bold;">⑵</span> The <code>main()</code> 
+function is responsible for two main tasks:
+
+<ol>
+<li style="margin-top:10px;">
+Constructing the <code>(token, PostScript width)</code> vector discussed in the 
+<a href="#text-layout-overview">Text Layout Overview</a> section. Please refer to 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L80-L133" 
+title="pdf_02/src/main_text_layout.rs module | main() function" target="_blank">
+lines 80 to 133</a>.
+</li>
+
+<li style="margin-top:10px;">
+Assembling the <code>token</code> entries in the <code>(token, PostScript width)</code> 
+vector into lines that fit the given page width, also discussed in the 
+<a href="#text-layout-overview">Text Layout Overview</a> section. This is from 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L135-L159" 
+title="pdf_02/src/main_text_layout.rs module | main() function" target="_blank">
+lines 135 to 159</a>.
+</li>
+</ol>
+
+👉 Please note that the test text is only a single paragraph, and in the code we 
+implicitly assumed this: we do not break the text into individual paragraphs using 
+the <code>\n</code> newline character first.
+
+<span style="font-size:1.2em;font-weight:bold;">⑶</span>
+In the <code>main()</code> function, please also note the variable 
+<code>space_width_in_pt</code> in 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L115-L116" 
+title="pdf_02/src/main_text_layout.rs module | main() function" target="_blank">
+lines 115 to 116</a>, and later its usage in 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L144" 
+title="pdf_02/src/main_text_layout.rs module | main() function" target="_blank">
+line 144</a>—<code>if current_width + width + space_width_in_pt > a4_width {</code>, 
+and then in 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L150-L151" 
+title="pdf_02/src/main_text_layout.rs module | main() function" target="_blank">
+lines 150 to 151</a>: <code>current_line.push(' ');</code> and 
+<code>current_width += width + space_width_in_pt;</code>.
+
+This makes sense: words (morphemes) are separated by spaces, and a space occupies 
+width as well. We must therefore allocate horizontal width for them.
+
+<span style="font-size:1.2em;font-weight:bold;">⑷</span>
+The two variables <code>margin</code> and <code>a4_width</code> in 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main_text_layout.rs#L136-L137" 
+title="pdf_02/src/main_text_layout.rs module | main() function" target="_blank">
+lines 136 to 137</a> are simplified hardcoded literal values of the 
+geometries discussed in the <a href="#a4-page-geometry">A4 Page Geometry</a> section.
+
+🪟 Windows output:
+
+```
+Lịch sử Việt Nam từ năm 1945 đến nay, còn nhiều bí ẩn chưa được giải tỏa. Người bàng
+...11 lines are omitted...
+công cuộc phát triển cách mạng của họ sẽ dẫn đến 2 trường hợp:
+```
+
+🐧 Ubuntu output:
+
+```
+Lịch sử Việt Nam từ năm 1945 đến nay, còn nhiều bí ẩn chưa được giải tỏa. Người bàng
+...12 lines are omitted...
+hợp:
+```
+
+The differences in the two outputs are expected, since two different 
+font programs are in use. The space requirements for glyphs differ accordingly.
+
+This module demonstrates how shaped glyph widths can be assembled into full lines, 
+bringing us closer to complete page layout in the next stage. 
+
+<a id="rust-pdf"></a>
+❻ <strong>The Article Main Code</strong>
+
+💡 It should be clear that this code requires the <code>HarfBuzz</code> library.  
+🐧 On Ubuntu, all required libraries are globally recognized. 🪟 On Windows, I haven’t 
+added the paths for <code>harfbuzz.dll</code>, <code>harfbuzz-subset.dll</code>, and 
+their dependencies to the <code>PATH</code> environment variable. In each new Windows 
+terminal session, I run the following once:
+
+```
+set PATH=C:\PF\harfbuzz\dist\bin\;%PATH%
+set PATH=C:\PF\vcpkg\installed\x64-windows\bin\;%PATH%
+```
+
+Alternatively, you can simply run 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/set_env.bat" 
+title="pdf_02/set_env.bat file" target="_blank"><code>set_env.bat</code></a>.  
+After that, <code>cargo run</code> works as expected.
+
+🦀 To keep things simple, we use absolute paths for the font programs—  
+You will likely need to adjust the code to match your own system configuration.
+
+<a id="build-mod"></a>
+⓵ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/build.rs" 
+title="The pdf_02/build.rs module" target="_blank">
+<code>pdf_02/build.rs</code></a> module: This is a copy of the code from the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#build-mod" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>.
+
+<a id="cargo-file"></a>
+⓶ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/Cargo.toml" 
+title="The pdf_02/Cargo.toml file" target="_blank"><code>pdf_02/Cargo.toml</code></a>: 
+This is a copy of the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#cargo-file" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>. 
+We also discuss it briefly in the 
+<a href="#study-code">Text Shaping Investigative Code</a> section.
+
+<a id="subset-builder-mod"></a>
+⓷ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/subset_builder.rs" 
+title="The pdf_02/src/subset_builder.rs module" target="_blank"><code>pdf_02/src/subset_builder.rs</code></a>: 
+This is also a copy from the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#subset-builder-mod" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>.
+
+<a id="pdf-font-info-mod"></a>
+⓸ The 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_font_info.rs" 
+title="The pdf_02/src/pdf_font_info.rs module" target="_blank"><code>pdf_02/src/pdf_font_info.rs</code></a>: 
+This module also comes from the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#pdf-font-info-mod" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>. 
+There are some minor refactorings: fields are now private, and public getters have been added.
+
+<a id="pdf-page-geometry"></a>
+⓹ The new 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/page_geometry.rs" 
+title="The pdf_02/src/page_geometry.rs module" target="_blank"><code>pdf_02/src/page_geometry.rs</code></a>: 
+This module implements the discussion in the 
+<a href="#a4-page-geometry">A4 Page Geometry</a> section. We define four margins. 
+Since there are no standard margins, it is reasonable to assume that margins can be 
+independent of one another; having four provides this flexibility. Increasing the value 
+of any of these four margins should result in a PDF with more pages. 
+
+<a id="pdf-text-layout"></a>
+⓺ The new 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/text_layout.rs" 
+title="The pdf_02/src/text_layout.rs module" target="_blank"><code>pdf_02/src/text_layout.rs</code></a>: 
+This is a refactored version of the <code>main_text_layout.rs</code> module as 
+<a href="#study-code-harfbuzz-text-layout">discussed</a>. It exposes the public 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/text_layout.rs#L72-L159" 
+title="The pdf_02/src/text_layout.rs module | text_to_lines() function" target="_blank"><code>text_to_lines()</code></a> 
+function.
+
+<a id="pdf-text-layout-shaped lines"></a>
+👉 We will refer to the return value of the <code>text_to_lines()</code> function 
+as <strong>shaped lines</strong>.
+
+💥 Please note, in the study module <code>main_text_layout.rs</code> we worked with only a 
+single line, which was essentially a paragraph. In this module, the input text contains 
+multiple paragraphs, i.e., multiple lines separated by newline characters. We first break 
+the entire input text into a vector of strings, <code>lines_vec</code>, using the 
+<code>\n</code> delimiter, and also keep the <code>\n</code> delimiters as entries in 
+<code>lines_vec</code>. When iterating over <code>lines_vec</code>, if an entry is either 
+<code>\n</code> or <code>\r\n</code>, we simply push a space (ASCII character 32) into 
+the returned <strong>shaped lines</strong> vector and continue to the next 
+<code>lines_vec</code> entry. These space-only shaped lines are rendered as blank lines 
+in the final PDF. <strong>As a consequence of this, when we copy the text out of the PDF, 
+including blank lines, the pasted text will not contain any blank lines: all newline 
+characters from the input text are lost.</strong> Most PDF documents I have examined 
+behave in a similar manner.
+
+Together, these modules establish the foundation for assembling text into properly sized 
+and margined PDF pages.
+
+<a id="pdf-text-pdf-text"></a>
+⓻ The new 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs" 
+title="The pdf_02/src/pdf_text.rs module" target="_blank"><code>pdf_02/src/pdf_text.rs</code></a>: 
+This module is responsible for reading the input text file and preparing the text-related 
+data for PDF output. The public API is the 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L170-L209" 
+title="The pdf_02/src/pdf_text.rs module | prepare() method" target="_blank">
+<code>prepare()</code></a> method. The PDF-ready data are:
+
+<a id="pdf-text-font-subset"></a>
+<span style="font-size:1.2em;font-weight:bold;">⑴</span> 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L33-L34" 
+title="The pdf_02/src/pdf_text.rs module | PdfTextContent::font_subset: Vec&lt;u8&gt;" 
+target="_blank"><code>PdfTextContent::font_subset: Vec&lt;u8&gt;</code></a>: 
+Defining the content of this vector is the responsibility of the 
+<code>subset_builder.rs</code> module as <a href="#subset-builder-mod">discussed</a>. 
+We have also examined this task in detail in a previous article in this series.
+
+The helper method <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L108-L127" 
+title="The pdf_02/src/pdf_text.rs module | text_font_subset() method" target="_blank">
+<code>text_font_subset()</code></a> is responsible for generating the content for 
+this <code>PdfTextContent::font_subset: Vec&lt;u8&gt;</code> field.
+
+<a id="pdf-text-used-cids"></a>
+<span style="font-size:1.2em;font-weight:bold;">⑵</span> 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L35-L38" 
+title="The pdf_02/src/pdf_text.rs module | PdfTextContent::used_cids: Vec&lt;u16&gt;" target="_blank">
+<code>PdfTextContent::used_cids: Vec&lt;u16&gt;</code></a>: We covered this 
+collection in the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#pdf-page-mod-page-coll" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>. 
+In this article, we simply refactor the previous implementation into a new module and a 
+new <code>struct</code>, but the process remains the same.
+
+The helper method <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L129-L158" 
+title="The pdf_02/src/pdf_text.rs module | text_used_cids_glyph_bytes() method" target="_blank">
+<code>text_used_cids_glyph_bytes()</code></a> is responsible for generating the content for 
+this <code>PdfTextContent::used_cids: Vec&lt;u16&gt;</code> field.
+
+<a id="pdf-text-lines-glyph-bytes"></a>
+<span style="font-size:1.2em;font-weight:bold;">⑶</span> 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L39-L45" 
+title="The pdf_02/src/pdf_text.rs module | PdfTextContent::lines_glyph_bytes: Vec&lt;Vec&lt;u8&gt;&gt;" target="_blank">
+<code>PdfTextContent::lines_glyph_bytes: Vec&lt;Vec&lt;u8&gt;&gt;</code></a>: 
+The <code>text_layout.rs</code> module has already broken the input text into individual 
+lines that fit the given page width <a href="#pdf-text-layout">as described</a>. Each 
+<code>Vec&lt;u8&gt;</code> in this vector is the <code>glyph bytes</code> representation 
+of a <a href="#pdf-text-layout-shaped lines">shaped line</a>. We also encountered 
+<code>glyph bytes</code> in the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#pdf-gen-mod" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>.
+
+The vector of shaped lines is not directly useful for the PDF generation process. We 
+discard it after generating <code>glyph bytes</code> for each line and storing them in 
+the <code>lines_glyph_bytes</code> vector. This becomes the final text content written 
+to the PDF document.
+
+The helper method <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L129-L158" 
+title="The pdf_02/src/pdf_text.rs module | text_used_cids_glyph_bytes() method" target="_blank">
+<code>text_used_cids_glyph_bytes()</code></a> is responsible for generating the content for 
+this <code>PdfTextContent::lines_glyph_bytes: Vec&lt;Vec&lt;u8&gt;&gt;</code> field.
+
+<a id="pdf-text-copy-paste-unicodes"></a>
+<span style="font-size:1.2em;font-weight:bold;">⑷</span> 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L46-L47" 
+title="The pdf_02/src/pdf_text.rs module | PdfTextContent::copy_paste_unicodes: Vec&lt;u16&gt;" target="_blank">
+<code>PdfTextContent::copy_paste_unicodes: Vec&lt;u16&gt;</code></a>: We also 
+implemented this in the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#pdf-gen-mod" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>. 
+Please see the description of the <code>make_to_unicode_cmap()</code> function. Here, we 
+simply moved the data generation process into this module.
+
+The helper method <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_text.rs#L160-L168" 
+title="The pdf_02/src/pdf_text.rs module | text_copy_paste_unicodes() method" target="_blank">
+<code>text_copy_paste_unicodes()</code></a> is responsible for generating the content for 
+this <code>PdfTextContent::copy_paste_unicodes: Vec&lt;u16&gt;</code> field.
+
+<a id="pdf-text-pdf-gen"></a>
+⓼ The existing 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_gen.rs" 
+title="The pdf_02/src/pdf_gen.rs module" target="_blank"><code>pdf_02/src/pdf_gen.rs</code></a>: 
+“Existing” here means it is a copy of the code from the 
+<a href="https://behainguyen.wordpress.com/2025/11/11/rust-multilingual-pdfs-an-introductory-study/#pdf-gen-mod" 
+title="Rust: Multilingual PDFs — an Introductory Study" target="_blank">last article</a>, 
+with changes:
+
+<span style="font-size:1.2em;font-weight:bold;">⑴</span> 
+The new <a href="#pdf-text-pdf-text"><code>PdfTextContent</code></a> parameter replaces 
+the previous <code>PdfPages</code>.
+
+<span style="font-size:1.2em;font-weight:bold;">⑵</span> 
+In the <code>ToUnicode</code> map, the <code>beginbfchar...endbfchar</code> blocks now 
+contain at most 100 entries, as specified in the 
+<a href="https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf" 
+title="PDF 1.7 Reference Document" target="_blank">PDF 1.7 Reference Document</a>. 
+This is accomplished via a new helper function 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_gen.rs#L23-L49" 
+title="The pdf_02/src/pdf_gen.rs module | tounicode_mapping() function" 
+target="_blank"><code>tounicode_mapping()</code></a>.
+
+<span style="font-size:1.2em;font-weight:bold;">⑶</span> 
+The function 
+<a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/pdf_gen.rs#L284-L318" 
+title="The pdf_02/src/pdf_gen.rs module | prepare_page_content() function" 
+target="_blank"><code>prepare_page_content()</code></a> was completely 
+refactored. It takes the PDF-ready glyph bytes from the 
+<a href="#pdf-text-lines-glyph-bytes"><code>PdfTextContent::lines_glyph_bytes</code></a> 
+vector and generates PDF pages. 
+
+The new logic should be self-explanatory. 💥 It is important to understand how the PDF 
+text operator <code>Td</code> behaves. <code>Td tx ty</code> <strong>moves the text 
+cursor relative to its current position by <code>(tx, ty)</code>.</strong> It does 
+<strong>not</strong> set an absolute position on the page. The very first <code>Td</code> 
+after <code>BT</code> starts relative to the origin:
+
+<figure class="highlight"><pre><code class="language-rust" data-lang="rust"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">258
+259
+260
+261
+262
+263
+264
+265
+266
+</pre></td><td class="code"><pre><span class="k">fn</span> <span class="nf">new_page</span><span class="p">(</span><span class="n">font_size_pt</span><span class="p">:</span> <span class="nb">f32</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">Vec</span><span class="o">&lt;</span><span class="n">Operation</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="nd">vec!</span><span class="p">[</span>
+        <span class="nn">Operation</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="s">"BT"</span><span class="p">,</span> <span class="nd">vec!</span><span class="p">[]),</span>
+        <span class="o">//</span> <span class="n c">Set</span> <span class="n c">font</span> <span class="n c">F1</span> <span class="n c">and</span> <span class="n c">size</span> <span class="mi c">12</span>
+        <span class="nn">Operation</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="s">"Tf"</span><span class="p">,</span> <span class="nd">vec!</span><span class="p">[</span><span class="s">"F1"</span><span class="nf">.into</span><span class="p">(),</span> <span class="n">font_size_pt</span><span class="nf">.into</span><span class="p">()]),</span>
+        <span class="nn">Operation</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="s">"Td"</span><span class="p">,</span> <span class="nd">vec!</span><span class="p">[</span><span class="n">A4_DEFAULT_MARGINS</span><span class="py">.left</span><span class="nf">.into</span><span class="p">(),</span> 
+            <span class="nf">a4_default_content_height</span><span class="p">()</span><span class="nf">.into</span><span class="p">()]),</span> <span class="o c">//</span> <span class="n c">start</span> <span class="n c">position</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+That is, for each new page, we start the first line at the page’s top-left corner. 
+Then we move down the page by <code>line_height_pt</code> PostScript points, and write 
+the line (or rather, its glyph bytes). We repeat this process until we reach the bottom 
+of the page: <code>if current_y - line_height_pt &lt;= A4_DEFAULT_MARGINS.bottom</code>. 
+At that point, we flush the current PDF page and start a new one.
+
+<span style="font-size:1.2em;font-weight:bold;">⑷</span> 
+Other functions also take 
+the new <a href="#pdf-text-pdf-text"><code>PdfTextContent</code></a> parameter 
+instead of <code>PdfPages</code>, but their logic remains the same.
+
+Together, these changes ensure that the PDF generation process integrates seamlessly 
+with the new text content structures, paving the way for a complete end-to-end workflow 
+from input text to final PDF output.
+
+<a id="pdf-main"></a>
+⓽ <a href="https://github.com/behai-nguyen/polyglot_pdf/blob/main/pdf_02/src/main.rs" 
+title="The pdf_02/src/main.rs module" target="_blank"><code>pdf_02/src/main.rs</code></a>: 
+This module is brief and should be self-explanatory.
+
+<a id="examine-via-pdfxplorer"></a>
+❼ <strong>Examine Generated PDFs with <code>PDFXplorer</code></strong>
+
+The screenshot below shows the content of the first PDF page on Windows:
+
+![154-02-win-lopdf.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/12/154-02-win-lopdf.png)
+
+The following screenshot shows the content of the first PDF page on Ubuntu:
+
+![154-03-ubuntu-lopdf.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/12/154-03-ubuntu-lopdf.png)
+
+We observe the following: the first text line starts at <code>(dx=57, dy=785)</code>, 
+with units in PostScript points. Each subsequent line then begins at 
+<code>(dx=0, dy=-14.400001)</code>, <em>relative to the previous text position</em>.
+
+<a id="concluding-remarks"></a>
+❽ <strong>What’s Next</strong>
+
+This is just basic text layout, and I don’t consider the final result acceptable for 
+production use. The code serves primarily as a learning exercise. Moving forward, we 
+will focus more deeply on layout.  
+🪟 On Windows, I have successfully built and installed 
+<a href="https://www.gtk.org/docs/architecture/pango" title="Pango Library" 
+target="_blank">Pango</a>, along with its two associated libraries: 
+<a href="https://github.com/fribidi/fribidi" title="GNU FriBidi" target="_blank">GNU FriBidi</a> 
+and <a href="https://www.cairographics.org/" title="CairoGraphics" target="_blank">CairoGraphics</a>. 
+I plan to use Pango for text layout in future work.
+
+For the time being, however, I am focusing on exploring additional text features such as 
+bold, italic, mixed font sizes, and multiple font programs. There is still much to learn.
+
+Thanks for reading! I hope this post helps others who are looking to deepen their 
+understanding of PDF technology. As always—stay curious, stay safe 🦊
+
+✿✿✿
+
+Feature image sources:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://www.rust-lang.org/" target="_blank">https://www.rust-lang.org/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+<li>
+<a href="https://ur.wikipedia.org/wiki/%D9%81%D8%A7%D8%A6%D9%84:HarfBuzz.svg" target="_blank">https://ur.wikipedia.org/wiki/%D9%81%D8%A7%D8%A6%D9%84:HarfBuzz.svg</a>
+</li>
+</ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/polyglot_pdf" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
