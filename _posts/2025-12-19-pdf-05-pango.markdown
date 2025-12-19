@@ -1,0 +1,836 @@
+---
+layout: post
+title: "Rust: PDFs — Build and Install Pango and Associated Libraries"
+
+description: At the conclusion of the last article, we mentioned that we would explore Pango, along with its associated libraries&#58; GNU FriBidi and CairoGraphics. In this article, we describe how to build and install them on both Ubuntu and Windows, and verify the installation using the native CLI tool included with Pango. 
+
+tags:
+- Rust
+- FFI
+- HarfBuzz
+- hb-shape
+- hb-subset
+- Unicode
+- font subset
+- PDF
+- multilingual
+- line breaking
+- text layout
+- layout
+- Pango
+- FriBidi
+- Cairo
+---
+
+*At the conclusion of the <a href="https://behainguyen.wordpress.com/2025/12/07/rust-pdfs-basic-text-layout/#concluding-remarks" title="Rust: PDFs — Basic Text Layout" target="_blank">last article</a>, we mentioned that we would explore <a href="https://www.gtk.org/docs/architecture/pango" title="Pango Library" target="_blank"><code>Pango</code></a>, along with its associated libraries: <a href="https://github.com/fribidi/fribidi" title="GNU FriBidi" target="_blank"><code>GNU FriBidi</code></a> and <a href="https://www.cairographics.org/" title="CairoGraphics" target="_blank"><code>CairoGraphics</code></a>. In this article, we describe how to build and install them on both Ubuntu and Windows, and verify the installation using the native CLI tool included with <code>Pango</code>.*
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/polyglot_pdf" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
+
+| ![155-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2025/12/155-feature-image.png) |
+|:--:|
+| *Rust: PDFs — Build and Install Pango and Associated Libraries* |
+
+We will first describe how to build and install <code>Pango</code> on Ubuntu 🐧, and then on Windows 🪟. 
+This process assumes that <code>HarfBuzz</code> has already been built and installed, as described in the 
+<a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine" target="_blank">first article</a>.
+
+Originally, I planned to discuss the Rust code as well. I have already completed the study code, 
+but this article became too long. For now, I want to capture as much detail as possible so that 
+if I need to repeat the process later, the information will be readily available.
+
+<a id="harfbuzz-note"></a>
+🙏 Please note that <code>Pango</code> depends on <code>HarfBuzz</code>. On Windows 🪟, the default 
+<code>Pango</code> build process will include its own <code>HarfBuzz</code> build. We must explicitly 
+instruct it to use our existing <code>HarfBuzz</code> build and installation instead.
+
+<a id="ubuntu-build-install"></a>
+❶ <strong>Ubuntu: Build and Install Pango and Associated Libraries</strong>
+
+💥 Please note: At the time of writing this section, I recalled that my earlier research 
+suggested <code>Pango</code> and its associated libraries may already be included with the 
+Ubuntu distribution. However, I did not verify this. I proceeded with building and installing 
+them manually, and afterward encountered a <code>Pango</code> version conflict 
+<a href="#ubuntu-build-install-pango-ver-conflict">as discussed</a>. 🙏 If you are following 
+this article, I recommend reading this section in full before deciding whether you need to 
+perform the build and installation yourself.
+
+<a id="ubuntu-upgrade-meson"></a>
+⓵ <strong>Upgrade the <a href="https://mesonbuild.com/Getting-meson.html" 
+title="The Meson Build Tool" target="_blank">Meson Build Tool</a></strong>
+
+In the 
+<a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/#installation-on-ubuntu" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine" 
+target="_blank">first article</a>, we installed <code>Meson</code>. However, building 
+<code>Pango</code> requires a newer version. The following commands install the latest 
+<code>Meson</code> in the user path, without modifying the system Python:
+
+```
+$ sudo apt remove meson
+$ sudo apt install pipx 
+$ pipx ensurepath
+$ pipx install meson
+$ pipx ensurepath
+```
+
+Running <code>meson --version</code> reports <code>1.10.0</code>. I am not certain how 
+this change would affect the <code>HarfBuzz</code> build and installation described in 
+the <a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/#installation-on-ubuntu" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine" target="_blank">first 
+article</a>, should I need to repeat that process.
+
+● The first <code>pipx ensurepath</code> command reports:
+
+```
+Success! Added /home/behai/.local/bin to the PATH environment variable.
+
+Consider adding shell completions for pipx. Run 'pipx completions' for instructions.
+
+You will need to open a new terminal or re-login for the PATH changes to take effect.
+
+Otherwise pipx is ready to go! ✨ 🌟 ✨
+```
+
+● After successful completion, the <code>pipx install meson</code> command suggests 
+running <code>pipx ensurepath</code> again:
+
+```
+  installed package meson 1.10.0, installed using Python 3.12.3
+  These apps are now globally available
+    - meson
+  These manual pages are now globally available
+    - man1/meson.1
+⚠️  Note: '/home/behai/.local/bin' is not on your PATH environment variable. These apps will not be globally accessible until your PATH is updated. Run `pipx ensurepath` to automatically add it, or manually
+    modify your PATH in your shell's config file (i.e. ~/.bashrc).
+done! ✨ 🌟 ✨
+```
+
+● The second <code>pipx ensurepath</code> command reports:
+
+```
+/home/behai/.local/bin has been been added to PATH, but you need to open a new terminal or re-login for this PATH change to take effect.
+
+You will need to open a new terminal or re-login for the PATH changes to take effect.
+
+Otherwise pipx is ready to go! ✨ 🌟 ✨
+```
+
+<a id="ubuntu-build-install-pango"></a>
+⓶ <strong>Build and Install Pango and Associated Libraries</strong>
+
+<a id="ubuntu-install-pango-dev-packages"></a>
+<u><span style="font-size:1.4em; font-weight:bold; line-height:0; vertical-align:-0.1em;">⑴</span>
+Install Development Packages</u>
+
+The following commands install all required development packages to build 
+<code>Pango</code>:
+
+```
+$ sudo apt-get update
+$ sudo apt-get install meson ninja-build pkg-config \
+      gcc g++ ragel gtk-doc-tools \
+      libglib2.0-dev libfreetype6-dev libfontconfig1-dev \
+      libcairo2-dev libfribidi-dev libharfbuzz-dev
+```
+
+To confirm, run:
+
+```
+$ ls -l /usr/lib/x86_64-linux-gnu/pkgconfig/ | more
+```
+
+You should see entries such as:
+
+```
+cairo*.pc, freetype2.pc, fribidi.pc, glib-2.0.pc, gobject-2.0.pc, harfbuzz-*.pc, harfbuzz.pc, harfbuzz-subset.pc
+```
+
+<a id="ubuntu-build-install-pango-get-src"></a>
+<u>
+  <span style="font-size:1.4em; font-weight:bold; line-height:0; vertical-align:-0.1em;">⑵</span>
+  Build <code>Pango</code> From Source and Install
+</u>
+
+● <strong>Download the latest tarball from GNOME:</strong>
+
+```
+$ wget https://download.gnome.org/sources/pango/1.56/pango-1.56.4.tar.xz
+$ tar xf pango-1.56.4.tar.xz
+$ cd pango-1.56.4
+```
+
+<a id="ubuntu-build-install-pango-config"></a>
+● <strong>Configure with Meson:</strong>
+
+```
+$ meson setup build --prefix=/usr/local
+```
+
+This command produces a long output. The final lines include:
+
+```
+...
+pango 1.56.4
+
+  Font backends
+    Fontconfig   : true
+    DirectWrite  : false
+    CoreText     : false
+
+  Features
+    Cairo        : true
+    Thai         : false
+    Sysprof      : false
+
+  Toolchain
+    Compiler     : gcc
+    Linker       : ld.bfd
+
+  Build
+    Debugging    : true
+    Optimization : 2
+    Introspection: false
+    Documentation: false
+    Man pages    : false
+    Tests        : true
+    Examples     : true
+
+  Directories
+    prefix       : /usr/local
+    includedir   : /usr/local/include
+    libdir       : /usr/local/lib/x86_64-linux-gnu
+    datadir      : /usr/local/share
+
+  Subprojects
+    glib         : YES
+    gvdb         : YES (from glib)
+
+  User defined options
+    prefix       : /usr/local
+
+Found ninja-1.11.1 at /usr/bin/ninja
+```
+
+💥 <strong>Observation:</strong> In the <code>Subprojects</code> section, 
+<code>HarfBuzz</code> is not listed. This suggests it is using the build and installation 
+from the <a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/#installation-on-ubuntu" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine" target="_blank">first 
+article</a>. If so, it raises the question of why the <code>libharfbuzz-dev</code> package 
+was required <a href="#ubuntu-install-pango-dev-packages">as described</a>. Most likely, 
+the dev package ensures headers and <code>pkg-config</code> files are available for detection.
+
+<a id="ubuntu-build-install-pango-build-install"></a>
+● <strong>Build and Install:</strong>
+
+```
+$ ninja -C build
+$ sudo ninja -C build install
+```
+
+The output of <code>ninja -C build</code> is lengthy and includes many warnings. 
+The output of <code>sudo ninja -C build install</code> is also long, but appears clean. 
+After installation, you should find <code>pango.pc</code> in 
+<code>/usr/local/lib/x86_64-linux-gnu/pkgconfig</code>:
+
+```
+$ ls -l /usr/local/lib/x86_64-linux-gnu/pkgconfig/pango.pc
+```
+
+You should also have the <code>pango-view</code> executable:
+
+```
+$ sudo find / -iname pango-view
+```
+
+Output:
+
+```
+find: ‘/proc/5116’: No such file or directory
+/home/behai/pango-1.56.4/build/utils/pango-view
+/usr/local/bin/pango-view
+```
+
+<a id="ubuntu-build-install-pango-ver-conflict"></a>
+⓷ <strong>Resolving <code>Pango</code> Version Conflict</strong>
+
+<code>/usr/local/bin/pango-view</code> should be in the user path:
+
+```
+$ which pango-view
+```
+
+Checking the version:
+
+```
+$ pango-view --version
+```
+
+reports:
+
+```
+pango-view (pango) 1.56.4
+Linked Pango library has a different version: 1.52.1
+```
+
+During <a href="#ubuntu-build-install-pango-config">configuration</a>, the target version 
+was <code>pango 1.56.4</code>. <strong>Observation:</strong> the linked version 
+<code>1.52.1</code> likely comes with the Ubuntu distribution 
+<a href="#ubuntu-build-install">as noted earlier</a>. It is a system-installed shared 
+library located in <code>/usr/lib/x86_64-linux-gnu/</code>:
+
+```
+$ ls -l /usr/lib/x86_64-linux-gnu/libpango*-1.0.so*
+```
+
+```
+lrwxrwxrwx 1 root root     24 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpango-1.0.so.0 -> libpango-1.0.so.0.5200.1
+-rw-r--r-- 1 root root 433912 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpango-1.0.so.0.5200.1
+lrwxrwxrwx 1 root root     29 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 -> libpangocairo-1.0.so.0.5200.1
+-rw-r--r-- 1 root root  67712 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0.5200.1
+lrwxrwxrwx 1 root root     27 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 -> libpangoft2-1.0.so.0.5200.1
+-rw-r--r-- 1 root root 108536 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpangoft2-1.0.so.0.5200.1
+lrwxrwxrwx 1 root root     27 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpangoxft-1.0.so.0 -> libpangoxft-1.0.so.0.5200.1
+-rw-r--r-- 1 root root  38904 Mar 31  2024 /usr/lib/x86_64-linux-gnu/libpangoxft-1.0.so.0.5200.1
+```
+
+We <a href="#ubuntu-build-install-pango-config">configured</a> <code>pango 1.56.4</code> 
+to install under <code>/usr/local</code>:
+
+```
+ls -l /usr/local/lib/x86_64-linux-gnu/libpango*-1.0.so*
+```
+
+```
+lrwxrwxrwx 1 root root      17 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpango-1.0.so -> libpango-1.0.so.0
+lrwxrwxrwx 1 root root      24 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpango-1.0.so.0 -> libpango-1.0.so.0.5600.4
+-rwxr-xr-x 1 root root 1659184 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpango-1.0.so.0.5600.4
+lrwxrwxrwx 1 root root      22 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangocairo-1.0.so -> libpangocairo-1.0.so.0
+lrwxrwxrwx 1 root root      29 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 -> libpangocairo-1.0.so.0.5600.4
+-rwxr-xr-x 1 root root  245784 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0.5600.4
+lrwxrwxrwx 1 root root      20 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangoft2-1.0.so -> libpangoft2-1.0.so.0
+lrwxrwxrwx 1 root root      27 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 -> libpangoft2-1.0.so.0.5600.4
+-rwxr-xr-x 1 root root  454288 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangoft2-1.0.so.0.5600.4
+lrwxrwxrwx 1 root root      20 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangoxft-1.0.so -> libpangoxft-1.0.so.0
+lrwxrwxrwx 1 root root      27 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangoxft-1.0.so.0 -> libpangoxft-1.0.so.0.5600.4
+-rwxr-xr-x 1 root root  165104 Dec 15 11:34 /usr/local/lib/x86_64-linux-gnu/libpangoxft-1.0.so.0.5600.4
+```
+
+At runtime, the <a href="https://manpages.ubuntu.com/manpages/jammy/man1/h8300-hms-ld.1.html" 
+title="dynamic linker ld" target="_blank">dynamic linker <code>ld</code></a> searches 
+library paths in this order:
+
+<ol>
+<li style="margin-top:10px;">
+<code>/lib</code>, <code>/usr/lib</code> (system defaults)  
+</li>
+<li style="margin-top:10px;">
+Any paths in <code>/etc/ld.so.conf</code> and <code>ld.so.cache</code>
+</li>
+<li style="margin-top:10px;">
+<code>/usr/local/lib</code> if configured  
+</li>
+</ol>
+
+Because <code>/usr/lib/x86_64-linux-gnu/</code> precedes 
+<code>/usr/local/lib/x86_64-linux-gnu/</code>, <code>pango-view</code> links against 
+<code>pango 1.52.1</code> instead of <code>pango 1.56.4</code>. We need to instruct the 
+linker to prefer <code>/usr/local/lib/x86_64-linux-gnu/</code>.
+
+As a temporary measure, update <code>LD_LIBRARY_PATH</code> for the current session:
+
+```
+$ export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+$ pango-view --version
+```
+
+It should now report <code>pango-view (pango) 1.56.4</code>.
+
+To make this change permanent, use 
+<a href="https://manpages.ubuntu.com/manpages/jammy/man8/ldconfig.8.html" 
+title="ldconfig" target="_blank"><code>ldconfig</code></a>.
+
+Create <code>/etc/ld.so.conf.d/local.conf</code> containing:
+
+```
+/usr/local/lib/x86_64-linux-gnu
+```
+
+Then update the system’s library cache so <code>/usr/local</code> libraries are preferred:
+
+```
+$ sudo ldconfig
+```
+
+Verify with <a href="https://manpages.ubuntu.com/manpages/noble/en/man1/ldd.1.html" 
+title="ldd" target="_blank"><code>ldd</code></a>:
+
+```
+$ ldd /usr/local/bin/pango-view | grep pango
+```
+
+<p>
+You should see output similar to:
+</p>
+
+```
+libpango-1.0.so.0 => /usr/local/lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x000078a9b3e33000)
+libpangoft2-1.0.so.0 => /usr/local/lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 (0x000078a9b3e16000)
+libpangoxft-1.0.so.0 => /usr/local/lib/x86_64-linux-gnu/libpangoxft-1.0.so.0 (0x000078a9b3e0b000)
+libpangocairo-1.0.so.0 => /usr/local/lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x000078a9b3df7000)
+```
+
+After starting a fresh <code>ssh</code> session, <code>pango-view</code> should now report 
+<code>pango-view (pango) 1.56.4</code>.
+
+<a id="ubuntu-test-pango"></a>
+⓸ <strong>Test <code>Pango</code> Installation with <code>pango-view</code></strong>
+
+We can use <code>pango-view</code> to verify that <code>Pango</code> and its associated 
+libraries are functioning correctly:
+
+```
+$ pango-view --no-display --text="Hello, 世界" --font="NotoSansTC-Regular 16" --output=hello.png
+```
+
+This should produce a small <code>hello.png</code> file containing the rendered text. 
+Note that <code>pango-view</code> does not support PDF generation.
+
+<a id="windows-build-install"></a>
+❷ <strong>Windows: Build and Install Pango and Associated Libraries</strong>
+
+<a id="windows-build-install-env"></a>
+⓵ <strong>Environment — the 64-bit <code>Developer Command Prompt for 
+Visual Studio 2022</code></strong>
+
+💡 <strong>Important</strong> 💥 The steps that follow rely on an up-to-date installation of 
+<strong><code>Visual Studio 2022</code></strong> on Windows. I have not tested this process with later versions of 
+<code>Visual Studio</code>, so I cannot comment on compatibility beyond 2022.
+
+To access the 64-bit <code>Developer Command Prompt for Visual Studio 2022</code> (or for your installed version), 
+open a <code>Windows Terminal</code> session, launch a new <code>Command Prompt</code>, and run the following batch file:
+
+```
+"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+```
+
+You should see output similar to the following—note the <code>x64</code> architecture:
+
+```
+**********************************************************************
+** Visual Studio 2022 Developer Command Prompt v17.14.18
+** Copyright (c) 2025 Microsoft Corporation
+**********************************************************************
+[vcvarsall.bat] Environment initialized for: 'x64'
+```
+
+We 
+<a href="https://behainguyen.wordpress.com/2025/10/28/rust-ffi-adventure-with-the-harfbuzz-text-shaping-engine/#win-install-llvm" 
+title="Rust FFI “Adventure” with the HarfBuzz Text Shaping Engine"
+target="_blank">covered</a> this environment setup in detail in the first article.
+
+<a id="windows-build-install-fribidi"></a>
+⓶ <strong>Build and Install <a href="https://github.com/fribidi/fribidi" title="GNU FriBidi" 
+target="_blank"><code>GNU FriBidi</code></a></strong>
+
+The build process needs to know where to find 
+<a href="https://vcpkg.io/en/" title="vcpkg" target="_blank">vcpkg</a>:
+
+```
+set PKG_CONFIG=C:\PF\vcpkg\installed\x64-windows\tools\pkgconf\pkgconf.exe
+set PKG_CONFIG_PATH=C:\PF\vcpkg\installed\x64-windows\lib\pkgconfig
+```
+
+I am using the <code>C:\PF\</code> directory as the root folder, as before:
+
+```
+c:
+cd\PF
+```
+
+Download the source and prepare to build:
+
+```
+git clone https://github.com/fribidi/fribidi.git
+cd fribidi
+mkdir build
+```
+
+Then build:
+
+```
+meson setup build --buildtype=release --default-library=both -Ddocs=false
+cd build
+meson compile
+```
+
+Finally, install:
+
+```
+meson install --destdir ../dist
+```
+
+● The <code>meson setup build...</code> step should not take long. The output is short, ending with:
+
+```
+...
+fribidi 1.0.16
+
+  User defined options
+    buildtype      : release
+    default_library: both
+    docs           : false
+
+Found ninja-1.12.1 at "C:\Program Files\Meson\ninja.EXE"
+```
+
+● The <code>meson compile</code> command also produces a short output.
+
+● The <code>meson install...</code> command should complete quickly, with minimal output. 
+After installation, we should have the following files:
+
+```
+C:\PF\fribidi\dist\bin\[fribidi.exe, fribidi-0.dll]
+C:\PF\fribidi\dist\include\fribidi\*.h
+C:\PF\fribidi\dist\lib\[fribidi.lib, libfribidi.a]
+C:\PF\fribidi\dist\lib\pkgconfig\fribidi.pc
+```
+
+<a id="windows-build-install-cairo"></a>
+⓷ Build and Install <a href="https://www.cairographics.org/" 
+title="CairoGraphics" target="_blank"><code>Cairo-1.18.4</code></a>
+
+The build process needs to know where to find 
+<a href="https://vcpkg.io/en/" title="vcpkg" target="_blank">vcpkg</a>:
+
+```
+set PKG_CONFIG=C:\PF\vcpkg\installed\x64-windows\tools\pkgconf\pkgconf.exe
+set PKG_CONFIG_PATH=C:\PF\vcpkg\installed\x64-windows\lib\pkgconfig
+```
+
+<a id="windows-build-install-cairo-get-src"></a>
+<u><span style="font-size:1.4em; font-weight:bold; line-height:0; vertical-align:-0.1em;">⑴</span>
+Download and Prepare Source</u>
+
+● Download <a href="https://cairographics.org/releases/cairo-1.18.4.tar.xz" 
+title="Cairo 1.18.4 Release" target="_blank">https://cairographics.org/releases/cairo-1.18.4.tar.xz</a>
+
+● Extract and copy the entire <code>cairo-1.18.4\</code> directory from the archive to 
+<code>C:\PF\cairo-1.18.4\</code>
+
+● Change to <code>C:\PF\cairo-1.18.4\</code>
+
+<a id="windows-build-install-cairo-build-install"></a>
+<u><span style="font-size:1.4em; font-weight:bold; line-height:0; vertical-align:-0.1em;">⑵</span>
+Build Cairo From Source and Install</u>
+
+🦀 The working directory is <code>C:\PF\cairo-1.18.4\</code>. Run the following commands:
+
+```
+meson setup build --buildtype=release --default-library=shared -Dtests=disabled -Dpng=enabled -Dzlib=enabled -Dglib=enabled
+meson compile -C build
+meson install -C build --destdir ../dist
+```
+
+● The first command <code>meson setup build...</code> produces long output. The final lines include:
+
+```
+...
+Build targets in project: 51
+
+cairo 1.18.4
+
+  Surface Backends
+    Image                   : YES
+    Recording               : YES
+    Observer                : YES
+    Mime                    : YES
+    Tee                     : YES
+    Xlib                    : NO
+    Xlib Xrender            : NO
+    Quartz                  : NO
+    Quartz-image            : NO
+    XCB                     : NO
+    Win32                   : YES
+    CairoScript             : YES
+    PostScript              : YES
+    PDF                     : YES
+    SVG                     : YES
+
+  Font Backends
+    User                    : YES
+    FreeType                : NO
+    Fontconfig              : NO
+    Win32                   : YES
+    Win32 DWrite            : YES
+    Quartz                  : NO
+
+  Functions
+    PNG functions           : YES
+    X11-xcb                 : NO
+    XCB-shm                 : NO
+
+  Features and Utilities
+    cairo-trace:            : NO
+    cairo-script-interpreter: YES
+    API reference           : NO
+
+  Subprojects
+    pixman                  : YES
+
+  User defined options
+    buildtype               : release
+    default_library         : shared
+    glib                    : enabled
+    png                     : enabled
+    tests                   : disabled
+    zlib                    : enabled
+
+Found ninja-1.12.1 at "C:\Program Files\Meson\ninja.EXE"
+```
+
+● The second command <code>meson compile -C build</code> produces a large number of 
+warnings, but no errors.
+
+● The third command <code>meson install -C build --destdir ../dist</code> produces only 
+minimal output and completes fairly quickly.
+
+After installation, we should have the following files:
+
+```
+C:\PF\cairo-1.18.4\dist\bin\cairo-2.dll
+C:\PF\cairo-1.18.4\dist\bin\cairo-gobject-2.dll
+C:\PF\cairo-1.18.4\dist\bin\cairo-script-interpreter-2.dll
+C:\PF\cairo-1.18.4\dist\bin\pixman-1-0.dll
+
+C:\PF\cairo-1.18.4\dist\include\cairo
+C:\PF\cairo-1.18.4\dist\include\pixman-1
+
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-deprecated.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-dwrite.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-features.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-gobject.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-pdf.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-ps.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-script-interpreter.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-script.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-svg.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-tee.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-version.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo-win32.h
+C:\PF\cairo-1.18.4\dist\include\cairo\cairo.h
+C:\PF\cairo-1.18.4\dist\include\pixman-1\pixman-version.h
+C:\PF\cairo-1.18.4\dist\include\pixman-1\pixman.h
+
+C:\PF\cairo-1.18.4\dist\lib\cairo-gobject.lib
+C:\PF\cairo-1.18.4\dist\lib\cairo-script-interpreter.lib
+C:\PF\cairo-1.18.4\dist\lib\cairo.lib
+C:\PF\cairo-1.18.4\dist\lib\pixman-1.lib
+
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-dwrite-font.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-gobject.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-pdf.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-png.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-ps.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-script-interpreter.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-script.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-svg.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-tee.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-win32-font.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo-win32.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\cairo.pc
+C:\PF\cairo-1.18.4\dist\lib\pkgconfig\pixman-1.pc
+```
+
+<a id="windows-build-install-harfbuzz"></a>
+⓸ <strong>Using Our Own <code>HarfBuzz</code> Library</strong>
+
+As mentioned at <a href="#harfbuzz-note">the beginning</a>, by default the 
+<code>Pango</code> build process will include its own <code>HarfBuzz</code> 
+build. We need to explicitly instruct it to use our existing <code>HarfBuzz</code> 
+build and installation instead.
+
+<a id="windows-build-install-pango"></a>
+⓹ Build and Install <a href="https://www.gtk.org/docs/architecture/pango" 
+title="Pango Library" target="_blank"><code>Pango</code></a>
+
+The build process needs to know where to find 
+<a href="https://vcpkg.io/en/" title="vcpkg" target="_blank">vcpkg</a> 
+and all dependent libraries. For example, to use our own <code>HarfBuzz</code> 
+build, we must include <code>C:\PF\harfbuzz\dist\lib\pkgconfig\</code> in 
+the <code>PKG_CONFIG_PATH</code> environment variable:
+
+```
+set PKG_CONFIG=C:\PF\vcpkg\installed\x64-windows\tools\pkgconf\pkgconf.exe
+set PKG_CONFIG_PATH=C:\PF\vcpkg\installed\x64-windows\lib\pkgconfig;C:\PF\harfbuzz\dist\lib\pkgconfig;C:\PF\fribidi\dist\lib\pkgconfig;C:\PF\cairo-1.18.4\dist\lib\pkgconfig
+```
+
+I am using the <code>C:\PF\</code> directory as the root folder, as before:
+
+```
+c:
+cd\PF
+```
+
+Download the source and prepare to build:
+
+```
+git clone https://gitlab.gnome.org/GNOME/pango.git
+cd pango
+```
+
+Then build:
+
+```
+meson setup build --buildtype=release --default-library=shared -Dintrospection=disabled
+meson compile -C build
+```
+
+Finally, install:
+
+```
+meson install -C build --destdir ../dist
+```
+
+● The <code>meson setup build...</code> step should not take long. The output is moderately 
+lengthy, ending with:
+
+```
+...
+pango 1.57.1
+
+  Font backends
+    Fontconfig     : false
+    DirectWrite    : true
+    CoreText       : false
+
+  Features
+    Cairo          : true
+    Thai           : false
+    Sysprof        : false
+
+  Toolchain
+    Compiler       : msvc
+    Linker         : link
+
+  Build
+    Debugging      : false
+    Optimization   : 3
+    Introspection  : false
+    Documentation  : false
+    Man pages      : false
+    Tests          : true
+    Examples       : true
+
+  Directories
+    prefix         : c:/
+    includedir     : c:/include
+    libdir         : c:/lib
+    datadir        : c:/share
+
+  User defined options
+    buildtype      : release
+    default_library: shared
+    introspection  : disabled
+
+Found ninja-1.12.1 at "C:\Program Files\Meson\ninja.EXE"
+```
+
+● The <code>meson compile...</code> command produces moderately long output with warnings, 
+but no errors.
+
+● The <code>meson install...</code> command completes quickly, with minimal output. After installation, 
+we should have the following files:
+
+```
+C:\PF\pango\dist\bin\pango-1.0-0.dll
+C:\PF\pango\dist\bin\pango-list.exe
+C:\PF\pango\dist\bin\pango-segmentation.exe
+C:\PF\pango\dist\bin\pango-view.exe
+C:\PF\pango\dist\bin\pangocairo-1.0-0.dll
+C:\PF\pango\dist\bin\pangowin32-1.0-0.dll
+
+C:\PF\pango\dist\include\pango-1.0\pango\pango-*.h
+C:\PF\pango\dist\include\pango-1.0\pango\pango.h
+C:\PF\pango\dist\include\pango-1.0\pango\pangocairo.h
+C:\PF\pango\dist\include\pango-1.0\pango\pangowin32.h
+
+C:\PF\pango\dist\lib\pango-1.0.lib
+C:\PF\pango\dist\lib\pangocairo-1.0.lib
+C:\PF\pango\dist\lib\pangowin32-1.0.lib
+
+C:\PF\pango\dist\lib\pkgconfig\pango.pc
+C:\PF\pango\dist\lib\pkgconfig\pangocairo.pc
+C:\PF\pango\dist\lib\pkgconfig\pangowin32.pc
+```
+
+<a id="windows-test-pango"></a>
+⓺ <strong>Test <code>Pango</code> Installation with <code>pango-view</code></strong>
+
+Check the version of <code>pango-view.exe</code>:
+
+```
+C:\PF\pango\dist\bin\pango-view.exe --version
+```
+
+This reports <code>pango-view (pango) 1.57.1</code>, which matches the version built above.
+
+As on <a href="#ubuntu-test-pango">Ubuntu 🐧</a>, we use <code>pango-view</code> 
+to verify that <code>Pango</code> and its associated libraries are functioning correctly.
+
+We need to ensure that all required DLLs are available in the <code>PATH</code>. Run the following once:
+
+```
+set PATH=C:\PF\harfbuzz\dist\bin\;%PATH%
+set PATH=C:\PF\vcpkg\installed\x64-windows\bin\;%PATH%
+set PATH=C:\PF\pango\dist\bin;C:\PF\cairo-1.18.4\dist\bin;C:\PF\fribidi\dist\bin;%PATH%
+```
+
+Then run <code>pango-view</code>:
+
+```
+C:\PF\pango\dist\bin\pango-view.exe --no-display --text="Hello, 世界" --font="Arial Unicode MS 16" --output=hello.png
+```
+
+This should produce a small <code>hello.png</code> file containing the rendered text, 
+just as on <a href="#ubuntu-test-pango">Ubuntu 🐧</a>.
+
+<a id="concluding-remarks"></a>
+❸ <strong>What’s Next</strong>
+
+While much of the information in this article was supplied by AIs, it still takes 
+considerable effort to implement the instructions. I could not find any post that 
+documents this process, so I decided to write it down for myself first and foremost. 
+I hope it also proves useful to anyone else who happens to be on the same path.
+
+As mentioned earlier, I have already completed the study Rust code that uses 
+<code>Pango</code> and its associated libraries. I originally planned to discuss it here, 
+but the article became too long, and I felt a bit exhausted writing it. We will cover 
+the code in the next article.
+
+Thanks for reading! As always—stay curious, stay safe 🦊
+
+✿✿✿
+
+Feature image sources:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://ur.wikipedia.org/wiki/%D9%81%D8%A7%D8%A6%D9%84:HarfBuzz.svg" target="_blank">https://ur.wikipedia.org/wiki/%D9%81%D8%A7%D8%A6%D9%84:HarfBuzz.svg</a>
+</li>
+<li>
+<a href="https://en.wikipedia.org/wiki/Pango" target="_blank">https://en.wikipedia.org/wiki/Pango</a>
+</li>
+</ul>
+
+<h3>
+🦀 <a href="https://github.com/behai-nguyen/polyglot_pdf" title="Index of the Complete Series" target="_blank">Index of the Complete Series</a>.
+</h3>
