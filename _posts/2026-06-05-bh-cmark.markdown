@@ -1,0 +1,191 @@
+---
+layout: post
+title: "A Minimal, Dependency‑Free, CommonMark‑Oriented Parser in Rust"
+
+description: A brief introduction to bh_cmark — a minimal, dependency‑free, CommonMark‑oriented parser that I have implemented in Rust. 
+
+tags:
+- Rust
+- Markdown
+- CommonMark
+- Parser
+- Scanner
+---
+
+*A brief introduction to <code>bh_cmark</code> — a minimal, dependency‑free, CommonMark‑oriented parser that I have implemented in Rust.*
+
+| ![163-feature-image.png](https://behainguyen.wordpress.com/wp-content/uploads/2026/06/163-feature-image.png) |
+|:--:|
+| *A Minimal, Dependency‑Free, CommonMark‑Oriented Parser in Rust* |
+
+<a id="repository-cloning"></a>
+🚀 The code for this post is in the following GitHub repository: 
+<a href="https://github.com/behai-nguyen/bh_cmark" title="bh_cmark — A Minimal 
+Dependency-Free CommonMark Parser in Rust" target="_blank">bh_cmark</a>.
+
+<a id="project-goal"></a>
+❶ <strong>Project Goal</strong>
+
+In the ongoing 
+<a href="https://github.com/behai-nguyen/polyglot_pdf" title="PDF generation 
+via HarfBuzz, Pango, and Cairo" target="_blank">polyglot_pdf</a> project, 
+there are two ad hoc Markdown “parsers” that support emphasis, headers, and a 
+simple image‑block construct <code>![caption](image path)</code>.
+
+The <code>polyglot_pdf</code> project relies primarily on the 
+<a href="https://www.gtk.org/docs/architecture/pango" title="Pango Library" 
+target="_blank"><code>Pango</code></a> and 
+<a href="https://www.cairographics.org/" title="CairoGraphics" target="_blank">
+<code>Cairo</code></a> libraries, and indirectly on the 
+<a href="https://github.com/harfbuzz/harfbuzz" title="The HarfBuzz text shaping engine" 
+target="_blank">HarfBuzz text‑shaping engine</a>.  
+As with the previous ad hoc Markdown “parsers,” the output of this 
+<code>bh_cmark</code> library is intended to be consumed by the text‑styling and 
+rendering APIs provided by <code>Pango</code> and <code>Cairo</code>.
+
+The features supported by this parser are still limited to emphasis, headers, and 
+image blocks. In the next iteration, URLs and possibly lists will be added, depending 
+on how complex list handling becomes.
+
+To generate HTML from the parser output, see the 
+<a href="https://github.com/behai-nguyen/bh_cmark/blob/main/tests/test_commonmark_spec.rs" 
+title="The tests/test_commonmark_spec.rs module" target="_blank"><code>
+tests/test_commonmark_spec.rs</code></a> module.  
+In this iteration, HTML rendering was not one of the essential goals.
+
+<a id="ref-impl"></a>
+❷ <strong>Reference Implementation</strong>
+
+Parser behaviour — that is, the output — is validated against the CommonMark reference 
+implementation at 
+<a href="https://spec.commonmark.org/dingus/" title="Dingus 
+CommonMark reference implementation" target="_blank">https://spec.commonmark.org/dingus/</a>.  
+The 146 Markdown samples defined in the 
+<a href="https://github.com/behai-nguyen/bh_cmark/blob/main/tests/common/test_constant.rs" 
+title="The tests/common/test_constant.rs module" target="_blank">
+<code>tests/common/test_constant.rs</code></a> module were fed through 
+<code>Dingus</code> to verify the results of the corresponding parser tests.
+
+💡 I initially validated results against 
+<a href="https://markdownlivepreview.com/" title="Markdown Live Preview" 
+target="_blank">https://markdownlivepreview.com/</a>. I managed to match most of the 
+tests, but for certain pathological cases the outputs diverged — and fixing one case 
+would break another.
+
+Consider a 
+<a href="https://github.com/behai-nguyen/bh_cmark/blob/65afc7e20668d308749846dde2f5f7051a11d5d8/tests/common/test_constant.rs#L463-L466" 
+title="The tests/common/test_constant.rs module lines 463-466" target="_blank">test case</a> 
+that required significant effort to match:
+
+```markdown
+***Mount Fuji* / *富士山, ふじさ, Fujisan* / *Núi Phú Sỹ***
+```
+
+Markdown Live Preview produces:
+
+```html
+<em><strong>Mount Fuji* / <em>富士山, ふじさ, Fujisan</em> / *Núi Phú Sỹ</strong></em>
+```
+
+While Dingus renders it as:
+
+```html
+<strong><em>Mount Fuji</em> / <em>富士山, ふじさ, Fujisan</em> / <em>Núi Phú Sỹ</em></strong>
+```
+
+Whereas for this 
+<a href="https://github.com/behai-nguyen/bh_cmark/blob/65afc7e20668d308749846dde2f5f7051a11d5d8/tests/common/test_constant.rs#L529" 
+title="The tests/common/test_constant.rs module line 529" target="_blank">test case</a>:
+
+```markdown
+*****Hello*world****
+```
+
+Markdown Live Preview’s result:
+
+```html
+*<em><strong><em>Hello</em>world</strong></em>*
+```
+
+Dingus’s result:
+
+```html
+**<em><strong>Hello<em>world</em></strong></em>
+```
+
+I cannot explain Markdown Live Preview’s result. Eventually, I realised that 
+Markdown Live Preview does not strictly follow the 
+<a href="https://spec.commonmark.org/" 
+title="CommonMark Spec" target="_blank">CommonMark specification</a>.  
+I removed all heuristic code and adhered strictly to CommonMark’s deterministic rules.  
+It was a significant learning curve.
+
+<a id="test-suite"></a>
+❸ <strong>The Test Suite</strong>
+
+There are 9 (nine) test modules. See the 
+<a href="https://github.com/behai-nguyen/bh_cmark/tree/main/tests" title="The test suite" 
+target="_blank">test suite</a> area for the recommended order of reading or running 
+the tests. Most of the modules are fairly long, but this is mainly due to the setup 
+of test data. The actual test code is short and concise.
+
+<a id="bh-cmark"></a>
+❹ <strong>The <code>bh_cmark</code> Code</strong>
+
+We are not going to discuss the code in detail here; the inline documentation is 
+sufficient to understand the implementation. The <a href="#test-suite">Test Suite</a> 
+also demonstrates how the parser is used. The 
+<a href="https://github.com/behai-nguyen/bh_cmark/blob/main/examples/example_01.rs"
+title="The examples/example_01.rs module" target="_blank">provided example</a> 
+shows concisely how to instantiate the scanner and parser, and how to interpret the 
+parser output. You can extend this example to process Markdown files on disk.
+
+To build the parser example:
+
+```
+cargo build --example example_01
+```
+
+To run the parser example:
+
+```
+cargo run --example example_01
+```
+
+<a id="concluding-remarks"></a>
+❺ <strong>What’s Next</strong>
+
+I have already replaced the two previously mentioned 
+<a href="#project-goal">ad hoc “parsers”</a> with this <code>bh_cmark</code> library.  
+It works great, and the code changes were minimal. I will describe this in the next 
+<a href="https://github.com/behai-nguyen/polyglot_pdf" title="PDF generation 
+via HarfBuzz, Pango, and Cairo" target="_blank">polyglot_pdf</a> article.
+
+For now, we conclude this post here… If you are interested in learning about 
+Markdown parsing, I hope you find this post helpful and encouraging. It took 
+me nearly three months to complete these functionalities. I had some failures 
+along the way, but I learned a great deal as well.
+
+Thanks for reading! And as always—stay curious, stay safe 🦊
+
+✿✿✿
+
+Feature image sources:
+
+<ul>
+<li>
+<a href="https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper" target="_blank">https://www.omgubuntu.co.uk/2024/03/ubuntu-24-04-wallpaper</a>
+</li>
+<li>
+<a href="https://in.pinterest.com/pin/337277459600111737/" target="_blank">https://in.pinterest.com/pin/337277459600111737/</a>
+</li>
+<li>
+<a href="https://medium.com/analytics-vidhya/rust-adventures-from-java-class-to-rust-struct-1d63b66890cf/" target="_blank">https://medium.com/analytics-vidhya/rust-adventures-from-java-class-to-rust-struct-1d63b66890cf/</a>
+</li>
+<li>
+<a href="https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/" target="_blank">https://www.pngitem.com/download/ibmJoR_rust-language-hd-png-download/</a>
+</li>
+<li>
+<a href="https://commons.wikimedia.org/wiki/File:Markdown-mark.svg" target="_blank">https://commons.wikimedia.org/wiki/File:Markdown-mark.svg</a>
+</li>
+</ul>
