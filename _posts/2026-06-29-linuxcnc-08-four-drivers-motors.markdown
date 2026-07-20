@@ -89,6 +89,44 @@ for the final wiring.
 title="GitHub location of the draw square G-code program" 
 target="_blank">G-code program</a> is available here.
 
+# Updated 20/07/2026
+
+For the final wiring, I chose to use DIN rail terminal blocks. I sourced the following from a local supplier. I have no affiliation with the supplier:
+
+<ul>
+<li style="margin-top:10px;">
+6 x <a href="https://www.altronics.com.au/p/p2408-dinkle-35a-4mm-red-din-rail-terminal/" 
+title="35A 4mm Red DIN Rail Terminals" 
+target="_blank">35A 4mm Red DIN Rail Terminals</a>.
+</li>
+<li style="margin-top:10px;">
+6 x <a href="https://www.altronics.com.au/p/p2414-dinkle-35a-4mm-black-din-rail-terminal/" 
+title="35A 4mm Black DIN Rail Terminals" target="_blank">35A 4mm Black DIN Rail Terminals</a>.
+</li>
+<li style="margin-top:10px;">
+2 x <a href="https://www.altronics.com.au/p/p2444-4-way-insertion-bridge-for-4mm-din-rail-terminals/" 
+title="4 Way Insertion Bridges For 4mm DIN Rail Terminals" 
+target="_blank">4 Way Insertion Bridges For 4mm DIN Rail Terminals</a>.
+</li>
+<li style="margin-top:10px;">
+2 x <a href="https://www.altronics.com.au/p/p2443-3-way-insertion-bridge-for-4mm-din-rail-terminals/" 
+title="3 Way Insertion Bridges For 4mm DIN Rail Terminals" 
+target="_blank">3 Way Insertion Bridges For 4mm DIN Rail Terminals</a>.
+</li>
+<li style="margin-top:10px;">
+2 x <a href="https://www.altronics.com.au/p/p2472-dinkle-end-cap-for-din-rail-terminals/" 
+title="End Caps For DIN Rail Terminals" target="_blank">End Caps For DIN Rail Terminals</a>.
+</li>
+</ul>
+
+The diagram below shows how all components come together in the wiring.
+
+| ![UHP-750-36 PSU To Drivers Using DIN Rail Terminal Blocks](https://behainguyen.wordpress.com/wp-content/uploads/2026/07/uhp-750-36-to-drivers-din-rail-terminals.png) |
+|:--:|
+| UHP-750-36 PSU To Drivers Using DIN Rail Terminal Blocks |
+
+I have tested this wiring. It works just as well as using the two common distribution blocks.
+
 ✿✿✿
 
 Feature image source:
