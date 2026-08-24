@@ -4,6 +4,21 @@ title: "Raspberry Pi 4B LinuxCNC: Wiring the Mesa 7I96S Card and a Contactor to 
 
 description: This post documents how to wire the Mesa 7I96S Ethernet motion control STEP/IO Step & Dir plus I/O card to a contactor, enabling the LinuxCNC application to switch a wood router (or grinder) on and off using G-code commands.
 
+custom-css-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css"
+
+custom-javascript-list:
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"
+    - "https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"
+
+gallery-image-list:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-plate-01.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-plate-02.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-two-halves.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-plate-socket-top.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-plate-socket-bottom.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-assembled.jpg"
+
 tags:
 - Raspberry
 - 4B
@@ -287,6 +302,44 @@ As mentioned earlier, I’ve also figured out the basics of how the proximity sw
 One thing I haven’t covered yet is that I’ve also completed the <strong>main power distribution wiring</strong>, which includes the <strong>main switch</strong>, <strong>emergency stop button</strong>, and other essential components. I’ll need to write that up as well.
 
 If you happen to read this post, thank you for your time, and I hope I did not waste it. Stay safe, as always.
+
+<a id="socket-router-connection"></a>
+❽ <strong>Updated 24 August 2026: Using a 3-Pin 10A Flush-Mount Mains Socket for Router Connection</strong>
+
+I am now looking at building my own wooden control box to house all the electronics.
+The contactor, flyback diode, fuse holder and miniature circuit breaker would all be
+inside the control box.
+
+To connect the router to the control box, I am using the
+<a href="https://www.altronics.com.au/product/p8253-3-pin-10a-flush-mount-mains-socket-black-rear-entry"
+title="3 Pin 10A Flush Mount Mains Socket Black (Rear Entry)"
+target="_blank">3 Pin 10A Flush Mount Mains Socket Black (Rear Entry)</a>,
+which is available locally. The wiring has been revised slightly to incorporate this
+mains socket. Please see the illustration below:
+
+| ![Using a 3-Pin 10A Flush-Mount Mains Socket for Router Connection](https://behainguyen.wordpress.com/wp-content/uploads/2026/08/contactor-switch-load-panel-socket.png) |
+|:--:|
+| *Using a 3-Pin 10A Flush-Mount Mains Socket for Router Connection* |
+
+I have tested this new wiring in two steps. First, without the Mesa 7I96S card and
+using my bench power supply set to 24 V. Second, I tested it using LinuxCNC itself.
+
+The vendor specification for this mains socket states:
+<strong><em>“Suits panel thickness 1.0 to 3.0mm. Mounting depth 26mm.”</em></strong>.
+I had to make a steel bracket to mount this socket. The bracket is about 2 mm thick,
+and the steel came from the body of a Rover lawnmower. The photos below show the
+unpainted bracket on its temporary stand:
+
+{% include image-gallery.html list=page.gallery-image-list %}
+<br>
+
+I clamp the socket onto this bracket using the supplied screw. It appears to be
+secure. When the control box is ready, I will simply use an appropriate-diameter
+hole saw to cut an access hole and bolt this steel bracket in place using four (4)
+M4 bolts.
+
+💡 Another hole will be drilled at the bottom of the bracket to mount the cable gland
+securing the incoming AC 240 V 10 A cable.
 
 ✿✿✿
 
