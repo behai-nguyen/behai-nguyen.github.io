@@ -19,6 +19,12 @@ gallery-image-list:
     - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-plate-socket-bottom.jpg"
     - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-assembled.jpg"
 
+gallery-image-list-02:
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-incoming-cable-gland.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-incoming-cable-gland-mounting-hole.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-incoming-cable-gland-mounting-front-view.jpg"
+    - "https://behainguyen.wordpress.com/wp-content/uploads/2026/08/router-socket-incoming-cable-gland-mounting-back-view.jpg"
+
 tags:
 - Raspberry
 - 4B
@@ -340,6 +346,27 @@ M4 bolts.
 
 💡 Another hole will be drilled at the bottom of the bracket to mount the cable gland
 securing the incoming AC 240 V 10 A cable.
+
+<a id="socket-router-metal-cable-gland"></a>
+❾ <strong>Updated 30 August 2026:
+Using a 5-10mm EG11/PG11 IP68 Metal Cable Gland to Secure the Incoming AC 240 V 10 A Cable
+</strong>
+
+I have been able to find this
+<a href="https://www.altronics.com.au/product/h4345-5-10mm-eg11-pg11-ip68-metal-cable-gland"
+title="5-10mm EG11/PG11 IP68 Metal Cable Gland" target="_blank">5-10mm EG11/PG11 IP68
+Metal Cable Gland</a> locally. It is a bit dear at <strong>$9.75</strong>, but I bought it
+in store. The vendor states: <strong><em>“Standard gland suits cable diameter 5mm to 10mm.
+Mounting hole 18.5mm.”</em></strong> However, my measurement indicates that the required
+mounting hole should be around 15.0mm. The photos below show that the metal cable gland
+fits snugly in the 15.0mm mounting hole:
+
+{% include image-gallery.html list=page.gallery-image-list-02 %}
+<br>
+
+I was not aware that there were metal cable glands 😂 I thought they were all plastic.
+I came into the store, and they showed me where all the cable glands were. I am happy
+with how this turned out.
 
 ✿✿✿
 
